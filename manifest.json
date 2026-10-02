@@ -1,0 +1,14 @@
+{
+  "name": "Liquid Clock",
+  "short_name": "Liquid Clock",
+  "description": "A liquid analog clock by bitScribbles.",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#f6f4f0",
+  "theme_color": "#f6f4f0",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}

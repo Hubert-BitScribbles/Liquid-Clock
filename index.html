@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Liquid Clock</title>
+<meta name="description" content="A liquid analog clock by bitScribbles.">
+<meta name="apple-mobile-web-app-title" content="Liquid Clock">
+<meta name="theme-color" content="#f6f4f0">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#000;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;background:var(--bg);overflow:hidden}
+#clk{mix-blend-mode:multiply}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+</style></head>
+<body><canvas id="bg"></canvas><canvas id="clk"></canvas>
+<script>
+// ---- liquid background (WebGL, domain-warped noise) ----
+const bg=document.getElementById('bg'),gl=bg.getContext('webgl');
+const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
+const fs=`precision highp float;uniform vec2 r;uniform float t,ha,ma,P,pu,mid;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+ return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.02+vec2(1.7,9.2);a*=.5;}return v;}
+float seg(vec2 p,float a,float len){vec2 d=vec2(sin(a),cos(a));
+ float k=clamp(dot(p,d),-.07,len);return length(p-d*k);}
+vec3 pal(float x){return .5+.5*cos(6.2831*(x+vec3(.0,.33,.67)));}
+void main(){vec2 uv=(gl_FragCoord.xy-.5*r)/min(r.x,r.y)*1.6;
+ float R=.672,d=min(seg(uv,ha,R*.62),seg(uv,ma,R*.95));
+ vec2 ht=vec2(sin(ha),cos(ha))*R*.62,mt=vec2(sin(ma),cos(ma))*R*.95;
+ float tip=exp(-min(length(uv-ht),length(uv-mt))*4.);   // hotspots at the hand tips
+ float inf=max(exp(-d*3.2),mid*.9);                     // midnight floods the whole screen                                  // wide zone around the hands
+ float amp=inf*(.35+.55*pu)*(1.+1.6*mid);                             // surges as the minute turns
+ uv+=amp*vec2(sin(P+uv.y*5.),cos(P+uv.x*5.));
+ uv+=amp*.4*vec2(sin(2.*P+uv.x*9.+1.),cos(2.*P-uv.y*9.));
+ float s=t*.033;
+ vec2 q=vec2(fbm(uv+s),fbm(uv+vec2(5.2,1.3)-s));
+ vec2 w=vec2(fbm(uv+3.*q+vec2(1.7,9.2)+s*1.3),fbm(uv+3.*q+vec2(8.3,2.8)-s));
+ float f=fbm(uv+3.*w);
+ vec3 c=vec3(.97,.96,.94);                                   // white base
+ vec3 warm=mix(vec3(.95,.15,.08),vec3(1.,.55,.08),fbm(uv*2.+w)); // reds to oranges
+ float k=inf*(.16+.12*pu)+tip*.22+mid*.2;warm=mix(warm,vec3(.55,.15,.78),smoothstep(.52,.56,fbm(uv*1.3-w+40.)));   // purple share
+ warm=mix(warm,vec3(.42,.02,.07),smoothstep(.6,.72,f)*.75);                // crimson depth in vein cores
+ warm=mix(warm,vec3(1.,.1,.58),tip*.75*smoothstep(.45,.6,fbm(uv*2.5+w+60.))); // magenta at hand tips
+ c=mix(c,warm,smoothstep(.47-k,.55-.6*k,f));                                // ~40% coverage                        // warm veins
+ vec3 plum=mix(vec3(.48,.29,.49),vec3(.31,.16,.32),smoothstep(.4,.6,f));      // same plum/aubergine as the hands
+ c=mix(c,plum,smoothstep(.585,.645,fbm(uv*1.8+w*1.5+80.))*.7);                 // plum wisps
+ float sp=fbm(uv*4.+w*2.+t*.02),sel=fbm(uv*1.5-w+20.);
+ vec3 prim=sel<.42?vec3(.12,.3,1.):sel<.55?vec3(.93,.7,.18):vec3(0.,.62,.68); // electric blue, gold, teal
+ float g=.18*tip+.08*pu*inf;c=mix(c,prim,smoothstep(.66-g,.74-g,sp)*.92);                     // primary spatter
+ c*=.9+.12*f;                                                // gentle depth
+ gl_FragColor=vec4(c,1.);}`;
+function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}
+const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+const uR=gl.getUniformLocation(pr,'r'),uT=gl.getUniformLocation(pr,'t');
+
+// ---- analog clock overlay ----
+const ck=document.getElementById('clk'),cx=ck.getContext('2d');
+const uP=gl.getUniformLocation(pr,'P'),uPu=gl.getUniformLocation(pr,'pu'),uMid=gl.getUniformLocation(pr,'mid'),
+      uHa=gl.getUniformLocation(pr,'ha'),uMa=gl.getUniformLocation(pr,'ma');
+let W,H,D,Ph=0,last=0;
+function size(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+ bg.width=W*D*.5;bg.height=H*D*.5;ck.width=W*D;ck.height=H*D;gl.viewport(0,0,bg.width,bg.height);}
+addEventListener('resize',size);size();
+
+// preview a time: add ?t=23:59:30 to the URL
+let off=0;{const m=/t=(\d+):(\d+)(?::(\d+))?/.exec(location.search);
+ if(m){const d=new Date();d.setHours(+m[1],+m[2],+(m[3]||0),0);off=d-Date.now();}}
+
+function state(){
+ const d=new Date(Date.now()+off),sec=d.getSeconds()+d.getMilliseconds()/1000,
+  m=d.getMinutes()+sec/60,h=(d.getHours()%12)+m/60;
+ const pu=Math.max(Math.exp(-sec/5),Math.pow(Math.max(0,(sec-50)/10),2)); // minute surge
+ const day=d.getHours()*3600+d.getMinutes()*60+sec,x=day>43200?day-86400:day; // signed secs from midnight
+ const mid=x<0?Math.exp(x/300):Math.exp(-x/120);                             // builds 10 min before, fades after
+ return{ha:h*Math.PI/6,ma:m*Math.PI/30,pu,mid};}
+
+function hand(a,len,wd,tail,seed,mo,t){
+ cx.save();cx.rotate(a);const N=28,L=[],Rt=[];
+ for(let i=0;i<=N;i++){const u=i/N,y=tail-(tail+len)*u,
+  ramp=.2+1.2*u*u,                                   // calm near the centre, liveliest at the tips
+  hw=wd/2*(1-.3*u)*(1+mo*ramp*Math.sin(u*7+t*2.1+seed)),
+  sx=wd*mo*1.3*Math.sin(u*11-t*3.2+seed*2)*u*u;
+  L.push([sx-hw,y]);Rt.push([sx+hw,y]);}
+ cx.beginPath();cx.moveTo(L[0][0],L[0][1]);for(const p of L)cx.lineTo(p[0],p[1]);
+ for(let i=N;i>=0;i--)cx.lineTo(Rt[i][0],Rt[i][1]);cx.closePath();
+ cx.fill();cx.lineJoin='round';cx.lineWidth=wd*.35;cx.stroke();cx.restore();}
+
+function drawClock(S,t){
+ const w=W*D,h=H*D,R=Math.min(w,h)*.42,mo=.11+.1*S.pu+.2*S.mid;
+ cx.clearRect(0,0,w,h);cx.save();cx.translate(w/2,h/2);
+ cx.fillStyle=cx.strokeStyle='#7a4a7e'; // soft plum: multiplies into the colours beneath
+ // soft outer pass: blurred edges pick up the liquid's colours (multiply blend)
+ cx.filter=`blur(${R*.02}px)`;cx.globalAlpha=.7;
+ hand(S.ha,R*.62,R*.095,R*.1,0,mo,t);hand(S.ma,R*.95,R*.07,R*.12,3,mo,t);
+ cx.beginPath();cx.arc(0,0,R*.07,0,7);cx.fill();
+ // crisper, narrower core
+ cx.filter=`blur(${R*.004}px)`;cx.globalAlpha=.85;cx.fillStyle=cx.strokeStyle='#4e2852'; // deeper aubergine core
+ hand(S.ha,R*.6,R*.06,R*.08,0,mo,t);hand(S.ma,R*.93,R*.04,R*.1,3,mo,t);
+ cx.beginPath();cx.arc(0,0,R*.05,0,7);cx.fill();
+ cx.filter='none';cx.restore();}
+
+function frame(ms){
+ const S=state(),t=ms/1000,dt=Math.min(.1,(ms-last)/1000);last=ms;
+ Ph=(Ph+dt*(.9+3.3*S.pu)*(1+3*S.mid))%(Math.PI*2);
+ gl.uniform2f(uR,bg.width,bg.height);gl.uniform1f(uT,t);gl.uniform1f(uP,Ph);
+ gl.uniform1f(uPu,S.pu);gl.uniform1f(uMid,S.mid);gl.uniform1f(uHa,S.ha);gl.uniform1f(uMa,S.ma);
+ gl.drawArrays(gl.TRIANGLES,0,3);drawClock(S,t);requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+
+// tap to keep the screen awake
+addEventListener('click',()=>{try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}});
+</script></body></html>
