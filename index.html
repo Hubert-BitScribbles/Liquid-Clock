@@ -15,13 +15,37 @@
 html,body{height:100%;margin:0;background:var(--bg);overflow:hidden}
 #clk{mix-blend-mode:multiply}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#pb{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+ width:46px;height:46px;border-radius:50%;border:0;font-size:22px;line-height:46px;padding:0;cursor:pointer;
+ background:rgba(30,20,34,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+ transition:opacity .6s;z-index:2}
+#pb.hide{opacity:0;pointer-events:none}
+#pn{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120%);
+ width:min(620px,calc(100% - 24px));max-height:88vh;overflow:auto;box-sizing:border-box;padding:18px 16px 16px;
+ border-radius:22px;background:rgba(22,16,26,.78);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+ color:#f5f0f6;font:15px/1.3 -apple-system,system-ui,sans-serif;transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:3}
+#pn.open{transform:translate(-50%,0)}
+#pn h2{margin:0 0 12px;font-size:17px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+#pn h2 button{background:none;border:0;color:#f5f0f6;font:600 15px -apple-system,system-ui,sans-serif;opacity:.8;cursor:pointer}
+#ps{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px}
+.pc{background:none;border:0;color:inherit;font:12px -apple-system,system-ui,sans-serif;cursor:pointer;padding:0;text-align:center}
+.pc i{display:block;aspect-ratio:1;max-height:72px;width:100%;margin-inline:auto;border-radius:14px;margin-bottom:5px;outline:2px solid transparent;outline-offset:2px}
+.pc.on i{outline-color:#fff}
+#cu{display:none;margin-top:16px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 14px}
+#cu.show{display:grid}
+#cu label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;opacity:.9}
+#cu input{width:40px;height:30px;border:0;padding:0;background:none;border-radius:8px;cursor:pointer}
 </style></head>
 <body><canvas id="bg"></canvas><canvas id="clk"></canvas>
+<button id="pb" aria-label="Colours">🎨</button>
+<div id="pn" role="dialog" aria-label="Colours"><h2>Colours <button id="pd">Done</button></h2>
+<div id="ps"></div><div id="cu"></div></div>
 <script>
 // ---- liquid background (WebGL, domain-warped noise) ----
 const bg=document.getElementById('bg'),gl=bg.getContext('webgl');
 const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
 const fs=`precision highp float;uniform vec2 r;uniform float t,ha,ma,P,pu,mid;
+uniform vec3 cBase,cW1,cW2,cAcc,cDeep,cHi,cPlum,cPlumD,cS1,cS2,cS3;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
  return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
@@ -41,16 +65,16 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*r)/min(r.x,r.y)*1.6;
  vec2 q=vec2(fbm(uv+s),fbm(uv+vec2(5.2,1.3)-s));
  vec2 w=vec2(fbm(uv+3.*q+vec2(1.7,9.2)+s*1.3),fbm(uv+3.*q+vec2(8.3,2.8)-s));
  float f=fbm(uv+3.*w);
- vec3 c=vec3(.97,.96,.94);                                   // white base
- vec3 warm=mix(vec3(.95,.15,.08),vec3(1.,.55,.08),fbm(uv*2.+w)); // reds to oranges
- float k=inf*(.16+.12*pu)+tip*.22+mid*.2;warm=mix(warm,vec3(.55,.15,.78),smoothstep(.52,.56,fbm(uv*1.3-w+40.)));   // purple share
- warm=mix(warm,vec3(.42,.02,.07),smoothstep(.6,.72,f)*.75);                // crimson depth in vein cores
- warm=mix(warm,vec3(1.,.1,.58),tip*.75*smoothstep(.45,.6,fbm(uv*2.5+w+60.))); // magenta at hand tips
+ vec3 c=cBase;                                   // white base
+ vec3 warm=mix(cW1,cW2,fbm(uv*2.+w)); // reds to oranges
+ float k=inf*(.16+.12*pu)+tip*.22+mid*.2;warm=mix(warm,cAcc,smoothstep(.52,.56,fbm(uv*1.3-w+40.)));   // purple share
+ warm=mix(warm,cDeep,smoothstep(.6,.72,f)*.75);                // crimson depth in vein cores
+ warm=mix(warm,cHi,tip*.75*smoothstep(.45,.6,fbm(uv*2.5+w+60.))); // magenta at hand tips
  c=mix(c,warm,smoothstep(.47-k,.55-.6*k,f));                                // ~40% coverage                        // warm veins
- vec3 plum=mix(vec3(.48,.29,.49),vec3(.31,.16,.32),smoothstep(.4,.6,f));      // same plum/aubergine as the hands
+ vec3 plum=mix(cPlum,cPlumD,smoothstep(.4,.6,f));      // same plum/aubergine as the hands
  c=mix(c,plum,smoothstep(.585,.645,fbm(uv*1.8+w*1.5+80.))*.7);                 // plum wisps
  float sp=fbm(uv*4.+w*2.+t*.02),sel=fbm(uv*1.5-w+20.);
- vec3 prim=sel<.42?vec3(.12,.3,1.):sel<.55?vec3(.93,.7,.18):vec3(0.,.62,.68); // electric blue, gold, teal
+ vec3 prim=sel<.42?cS1:sel<.55?cS2:cS3; // electric blue, gold, teal
  float g=.18*tip+.08*pu*inf;c=mix(c,prim,smoothstep(.66-g,.74-g,sp)*.92);                     // primary spatter
  c*=.9+.12*f;                                                // gentle depth
  gl_FragColor=vec4(c,1.);}`;
@@ -59,6 +83,63 @@ const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attac
 gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
 const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
 const uR=gl.getUniformLocation(pr,'r'),uT=gl.getUniformLocation(pr,'t');
+
+// ---- palettes ----
+const PRESETS={
+ marquis:{name:'Marquis',base:'#f7f5f0',c1:'#f22614',c2:'#ff8c14',accent:'#8c26c7',highlight:'#ff1a94',hands:'#7a4a7e',s1:'#1f4dff',s2:'#edb32e',s3:'#009ead',deep:'#6b0512'},
+ sunrise:{name:'Sacré-Cœur',base:'#fbf3e6',c1:'#ff6b5a',c2:'#ffb347',accent:'#b38ad9',highlight:'#ff5f8f',hands:'#7d5a7a',s1:'#5aa9ff',s2:'#f2c84b',s3:'#6fd1b4'},
+ hightable:{name:'High Table',base:'#f3f2ef',c1:'#2b2b2e',c2:'#6b6e75',accent:'#b3121f',highlight:'#e0242f',hands:'#55525a',s1:'#b3121f',s2:'#c9a24a',s3:'#8b8f96'},
+ osaka:{name:'Osaka Neon',base:'#0b0a14',c1:'#ff2e88',c2:'#ff7a2e',accent:'#7b2ff7',highlight:'#ff4fd8',hands:'#9fe6ff',s1:'#00e5ff',s2:'#fff04a',s3:'#2bff88'},
+ continental:{name:'Continental',base:'#0e0b08',c1:'#c8962e',c2:'#e8c46a',accent:'#7a1020',highlight:'#f4e2b0',hands:'#e6d3a8',s1:'#2f8f8a',s2:'#f6efe0',s3:'#a8622f'},
+ berlin:{name:'Berlin',base:'#07090f',c1:'#1d6bff',c2:'#00c2d1',accent:'#ff3d3d',highlight:'#c43dff',hands:'#ffb0a0',s1:'#ffd23d',s2:'#ff3d8a',s3:'#7dff5a'}};
+const FIELDS=[['base','Background'],['c1','Colour 1'],['c2','Colour 2'],['accent','Accent'],['highlight','Highlight'],['hands','Hands'],['s1','Spatter 1'],['s2','Spatter 2'],['s3','Spatter 3']];
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
+const toHex=v=>'#'+v.map(x=>Math.round(Math.max(0,Math.min(1,x))*255).toString(16).padStart(2,'0')).join('');
+const mixc=(a,b,t)=>a.map((x,i)=>x*(1-t)+b[i]*t);
+const lum=v=>.2126*v[0]+.7152*v[1]+.0722*v[2];
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let palId=store.get('lc.palette')||'marquis',custom=null;
+try{custom=JSON.parse(store.get('lc.custom')||'null')}catch(e){}
+if(!PRESETS[palId]&&!(palId==='custom'&&custom))palId='marquis';
+let PAL={};
+const U={};['cBase','cW1','cW2','cAcc','cDeep','cHi','cPlum','cPlumD','cS1','cS2','cS3'].forEach(n=>U[n]=gl.getUniformLocation(pr,n));
+function applyPalette(){
+ const p=palId==='custom'?custom:PRESETS[palId],B=hex(p.base),dark=lum(B)<.4,H=hex(p.hands);
+ const core=dark?mixc(H,[1,1,1],.35):H.map(x=>x*.64);
+ const deep=p.deep?hex(p.deep):(dark?mixc(hex(p.c1),hex(p.accent),.5).map(x=>x*.7):hex(p.c1).map(x=>x*.45));
+ const set=(n,v)=>gl.uniform3f(U[n],v[0],v[1],v[2]);
+ set('cBase',B);set('cW1',hex(p.c1));set('cW2',hex(p.c2));set('cAcc',hex(p.accent));set('cDeep',deep);
+ set('cHi',hex(p.highlight));const wisp=dark?mixc(H,hex(p.accent),.6):H;set('cPlum',wisp);set('cPlumD',dark?mixc(wisp,B,.35):H.map(x=>x*.64));
+ set('cS1',hex(p.s1));set('cS2',hex(p.s2));set('cS3',hex(p.s3));
+ PAL={hands:p.hands,core:toHex(core)};
+ document.getElementById('clk').style.mixBlendMode=dark?'screen':'multiply';
+ document.querySelector('meta[name=theme-color]')?.setAttribute('content',p.base);
+ store.set('lc.palette',palId);if(custom)store.set('lc.custom',JSON.stringify(custom));
+ renderUI();}
+
+// ---- palette UI ----
+const pb=document.getElementById('pb'),pn=document.getElementById('pn'),ps=document.getElementById('ps'),cu=document.getElementById('cu');
+const chip=p=>`linear-gradient(135deg,${p.base} 0 28%,${p.c1} 28% 46%,${p.c2} 46% 60%,${p.accent} 60% 76%,${p.hands} 76% 86%,${p.s1} 86%)`;
+function renderUI(){
+ const all=[...Object.entries(PRESETS),['custom',custom||{...PRESETS[palId==='custom'?'marquis':palId],name:'Custom'}]];
+ ps.innerHTML=all.map(([id,p])=>`<button class="pc${id===palId?' on':''}" data-id="${id}"><i style="background:${id==='custom'&&!custom?'conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)':chip(p)}"></i>${id==='custom'?'Custom':p.name}</button>`).join('');
+ const p=palId==='custom'?custom:PRESETS[palId];
+ cu.classList.toggle('show',palId==='custom');
+ if(palId==='custom'&&!cu.dataset.built){cu.dataset.built=1;
+  cu.innerHTML=FIELDS.map(([k,l])=>`<label>${l}<input type="color" data-k="${k}"></label>`).join('');}
+ cu.querySelectorAll('input').forEach(i=>{i.value=p[i.dataset.k]});}
+ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;const id=b.dataset.id;
+ if(id==='custom'&&!custom){const src=PRESETS[palId]||PRESETS.marquis;custom={...src,name:'Custom'};delete custom.deep;}
+ palId=id;applyPalette();});
+cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
+
+let idle;function wake(){if(pn.classList.contains('open'))return;pb.classList.remove('hide');clearTimeout(idle);idle=setTimeout(()=>{if(!pn.classList.contains('open'))pb.classList.add('hide')},3500);}
+pb.addEventListener('click',e=>{e.stopPropagation();pn.classList.add('open');pb.classList.add('hide');});
+document.getElementById('pd').addEventListener('click',e=>{e.stopPropagation();pn.classList.remove('open');wake();});
+pn.addEventListener('click',e=>e.stopPropagation());
+addEventListener('click',()=>{pn.classList.remove('open');wake();});
+addEventListener('pointermove',wake);
+applyPalette();wake();
 
 // ---- analog clock overlay ----
 const ck=document.getElementById('clk'),cx=ck.getContext('2d');
@@ -95,13 +176,13 @@ function hand(a,len,wd,tail,seed,mo,t){
 function drawClock(S,t){
  const w=W*D,h=H*D,R=Math.min(w,h)*.42,mo=.11+.1*S.pu+.2*S.mid;
  cx.clearRect(0,0,w,h);cx.save();cx.translate(w/2,h/2);
- cx.fillStyle=cx.strokeStyle='#7a4a7e'; // soft plum: multiplies into the colours beneath
+ cx.fillStyle=cx.strokeStyle=PAL.hands;
  // soft outer pass: blurred edges pick up the liquid's colours (multiply blend)
  cx.filter=`blur(${R*.02}px)`;cx.globalAlpha=.7;
  hand(S.ha,R*.62,R*.095,R*.1,0,mo,t);hand(S.ma,R*.95,R*.07,R*.12,3,mo,t);
  cx.beginPath();cx.arc(0,0,R*.07,0,7);cx.fill();
  // crisper, narrower core
- cx.filter=`blur(${R*.004}px)`;cx.globalAlpha=.85;cx.fillStyle=cx.strokeStyle='#4e2852'; // deeper aubergine core
+ cx.filter=`blur(${R*.004}px)`;cx.globalAlpha=.85;cx.fillStyle=cx.strokeStyle=PAL.core;
  hand(S.ha,R*.6,R*.06,R*.08,0,mo,t);hand(S.ma,R*.93,R*.04,R*.1,3,mo,t);
  cx.beginPath();cx.arc(0,0,R*.05,0,7);cx.fill();
  cx.filter='none';cx.restore();}
