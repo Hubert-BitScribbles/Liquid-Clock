@@ -15,18 +15,38 @@
 html,body{height:100%;margin:0;background:var(--bg);overflow:hidden}
 #clk{mix-blend-mode:multiply}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
-#pb{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
- width:44px;height:44px;border-radius:50%;border:0;padding:0;cursor:pointer;background:none;
- display:grid;place-items:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45));
- transition:opacity .6s;z-index:2}
-#pb.hide{opacity:0;pointer-events:none}
+#hub{position:fixed;left:50%;top:50%;width:min(28vmin,128px);height:min(28vmin,128px);transform:translate(-50%,-50%);
+ border:0;border-radius:50%;padding:0;background:transparent;cursor:pointer;z-index:2;
+ -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#hub:focus-visible{outline:1px solid rgba(228,194,120,.75);outline-offset:6px}
+#hint{position:fixed;left:50%;bottom:calc(7vh + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:3;pointer-events:none;
+ font:500 12px/1 'Didot','Bodoni 72',Georgia,serif;letter-spacing:.32em;text-transform:uppercase;color:rgba(40,28,20,.7);text-shadow:0 0 12px rgba(255,255,255,.6);
+ opacity:0;transition:opacity 1.6s;white-space:nowrap}
+#hint.dark{color:rgba(240,226,190,.75);text-shadow:0 0 12px rgba(0,0,0,.6)}
+#hint.on{opacity:1}
 #pn{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120%);
  width:min(620px,calc(100% - 24px));max-height:88vh;overflow:auto;box-sizing:border-box;padding:18px 16px 16px;
  border-radius:18px;border:1px solid rgba(228,194,120,.28);background:rgba(14,11,10,.82);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
  color:#f5f0f6;font:15px/1.3 -apple-system,system-ui,sans-serif;transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:3}
 #pn.open{transform:translate(-50%,0)}
-#pn h2{margin:0 0 12px;font:500 15px/1.2 'Didot','Bodoni 72',Georgia,serif;letter-spacing:.22em;text-transform:uppercase;color:#e4c278;display:flex;justify-content:space-between;align-items:center}
+#pn h2{margin:0 0 14px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+#pn h2 span{display:flex;gap:18px}
+.tab{opacity:.55;padding:4px 0;border-bottom:1px solid transparent!important}
+.tab[aria-selected=true]{opacity:1;border-bottom-color:rgba(228,194,120,.7)!important}
+#vAbout{display:none}
+#pn.about #vAbout{display:block}
+#pn.about #vCol{display:none}
+#vAbout h3{margin:20px 0 6px;font:500 12px/1.2 'Didot','Bodoni 72',Georgia,serif;letter-spacing:.24em;text-transform:uppercase;color:#e4c278}
+#vAbout h3:first-child{margin-top:4px}
+#vAbout p,#vAbout li{margin:0 0 8px;font-size:14px;line-height:1.5;color:rgba(245,240,230,.86);max-width:62ch}
+#vAbout ul{margin:0;padding-left:18px}
+#vAbout a{color:#e4c278}
+#vAbout .lede{font:italic 17px/1.4 'Didot','Bodoni 72',Georgia,serif;color:#f5f0e6}
+#vAbout .ver{font-size:12px;letter-spacing:.06em;color:rgba(245,240,230,.55)}
+#vAbout .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+#vAbout .links a{display:inline-block;padding:9px 14px;border:1px solid rgba(228,194,120,.4);border-radius:999px;text-decoration:none;font-size:13px}
 #pn h2 button{background:none;border:0;color:#e4c278;font:500 13px 'Didot','Bodoni 72',Georgia,serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
+#pn button:focus-visible,#pn a:focus-visible{outline:1px solid #e4c278;outline-offset:3px}
 #ps{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px}
 .pc{background:none;border:0;color:inherit;font:12px -apple-system,system-ui,sans-serif;cursor:pointer;padding:0;text-align:center}
 .pc i{display:block;aspect-ratio:1;max-height:72px;width:100%;margin-inline:auto;border-radius:14px;margin-bottom:5px;outline:2px solid transparent;outline-offset:2px}
@@ -37,15 +57,51 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #cu input{width:40px;height:30px;border:0;padding:0;background:none;border-radius:8px;cursor:pointer}
 </style></head>
 <body><canvas id="bg"></canvas><canvas id="clk"></canvas>
-<button id="pb" aria-label="Colours"><svg viewBox="0 0 64 64" width="38" height="38" aria-hidden="true"><defs>
-<radialGradient id="cg" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff1c2"/><stop offset=".45" stop-color="#d9a842"/><stop offset="1" stop-color="#7a5418"/></radialGradient>
-<linearGradient id="cr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d488"/><stop offset="1" stop-color="#5e3f10"/></linearGradient></defs>
-<circle cx="32" cy="32" r="30" fill="url(#cr)"/><circle cx="32" cy="32" r="26" fill="url(#cg)"/>
-<circle cx="32" cy="32" r="21" fill="none" stroke="#6b4a14" stroke-opacity=".55" stroke-width="1.2"/>
-<g stroke="#6b4a14" stroke-opacity=".5" stroke-width="1.2"><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(0 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(15 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(30 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(45 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(60 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(75 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(90 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(105 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(120 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(135 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(150 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(165 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(180 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(195 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(210 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(225 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(240 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(255 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(270 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(285 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(300 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(315 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(330 32 32)"/><line x1="32" y1="8.5" x2="32" y2="10.5" transform="rotate(345 32 32)"/></g>
-<path d="M32 19l3.2 9.8H45l-8 5.8 3 9.6-8-5.9-8 5.9 3-9.6-8-5.8h9.8z" fill="#6b4a14" fill-opacity=".55"/></svg></button>
-<div id="pn" role="dialog" aria-label="Colours"><h2>Colours <button id="pd">Done</button></h2>
-<div id="ps"></div><div id="cu"></div></div>
+<button id="hub" aria-label="Colours and about"></button>
+<div id="hint" aria-hidden="true">Touch the centre</div>
+<div id="pn" role="dialog" aria-label="Liquid Clock settings"><h2><span role="tablist">
+<button class="tab" role="tab" id="tCol" aria-selected="true">Colours</button>
+<button class="tab" role="tab" id="tAbout" aria-selected="false">About</button></span>
+<button id="pd">Done</button></h2>
+<div id="vCol"><div id="ps"></div><div id="cu"></div></div>
+<div id="vAbout">
+<h3>Liquid Clock</h3>
+<p class="lede">Time, kept in moving colour.</p>
+<p>Two big hands over a living background, and nothing else on the screen.</p>
+<p class="ver">Version <span id="ver"></span></p>
+
+<h3>How it moves</h3>
+<ul>
+<li>The liquid churns hardest around the hands, most of all at their tips.</li>
+<li>In the last ten seconds of every minute it builds, peaks as the minute turns, then settles.</li>
+<li>Midnight is different. For ten minutes before, the swirl spreads across the whole screen. It peaks at 12:00, then slowly calms.</li>
+<li>Touch the centre of the clock to open this screen. Nothing else is a button.</li>
+</ul>
+
+<h3>Keeping it on display</h3>
+<p><b>iPhone:</b> in Safari, tap Share, then Add to Home Screen, and open the clock from its icon so it runs full screen. Turn the phone sideways on a stand.</p>
+<p><b>Android:</b> in Chrome, open the menu and choose Add to Home screen or Install app.</p>
+<p>After your first touch the clock asks the screen to stay on. If your phone still dims, set Auto-Lock (iPhone) or Screen timeout (Android) to a longer time while the clock is on display.</p>
+
+<h3>Made by bitScribbles</h3>
+<p>Small apps, carefully made. Every app starts as a scribble.</p>
+<p>This one started with the wall clock behind the Marquis in the final act of John Wick: Chapter 4, and the question of whether a phone on a desk could feel like that.</p>
+
+<h3>Private by design</h3>
+<p>No account, no ads, no tracking, and nothing is sent anywhere. Your colours are remembered in this browser only.</p>
+
+<h3>Disclaimer</h3>
+<p>Liquid Clock is a fan-made tribute. It isn't affiliated with or endorsed by the makers of the John Wick films. It's provided as is, without warranty. When the time really matters, check another clock too.</p>
+
+<h3>Support</h3>
+<p>Ideas, problems, a palette you'd like to see: write any time.</p>
+<p class="links"><a id="mail" href="mailto:support@bitscribbles.com">Send feedback</a>
+<a href="https://www.buymeacoffee.com/bitscribbles" target="_blank" rel="noopener">Buy me a coffee</a></p>
+
+<h3>Credits</h3>
+<p>Open source under the MIT licence. The code is on <a href="https://github.com/Hubert-BitScribbles/Liquid-Clock" target="_blank" rel="noopener">GitHub</a>.</p>
+<p>© 2026 bitScribbles</p>
+</div></div>
 <script>
 // ---- liquid background (WebGL, domain-warped noise) ----
 const bg=document.getElementById('bg'),gl=bg.getContext('webgl');
@@ -119,12 +175,13 @@ function applyPalette(){
  set('cS1',hex(p.s1));set('cS2',hex(p.s2));set('cS3',hex(p.s3));
  PAL={hands:p.hands,core:toHex(core)};
  document.getElementById('clk').style.mixBlendMode=dark?'screen':'multiply';
+ document.getElementById('hint').classList.toggle('dark',dark);
  document.querySelector('meta[name=theme-color]')?.setAttribute('content',p.base);
  store.set('lc.palette',palId);if(custom)store.set('lc.custom',JSON.stringify(custom));
  renderUI();}
 
 // ---- palette UI ----
-const pb=document.getElementById('pb'),pn=document.getElementById('pn'),ps=document.getElementById('ps'),cu=document.getElementById('cu');
+const pn=document.getElementById('pn'),ps=document.getElementById('ps'),cu=document.getElementById('cu');
 const chip=p=>`linear-gradient(135deg,${p.base} 0 28%,${p.c1} 28% 46%,${p.c2} 46% 60%,${p.accent} 60% 76%,${p.hands} 76% 86%,${p.s1} 86%)`;
 function renderUI(){
  const all=[...Object.entries(PRESETS),['custom',custom||{...PRESETS[palId==='custom'?'marquis':palId],name:'Custom'}]];
@@ -139,13 +196,22 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-let idle;function wake(){if(pn.classList.contains('open'))return;pb.classList.remove('hide');clearTimeout(idle);idle=setTimeout(()=>{if(!pn.classList.contains('open'))pb.classList.add('hide')},3500);}
-pb.addEventListener('click',e=>{e.stopPropagation();pn.classList.add('open');pb.classList.add('hide');});
-document.getElementById('pd').addEventListener('click',e=>{e.stopPropagation();pn.classList.remove('open');wake();});
-pn.addEventListener('click',e=>e.stopPropagation());
-addEventListener('click',()=>{pn.classList.remove('open');wake();});
-addEventListener('pointermove',wake);
-applyPalette();wake();
+const VERSION='1.1.0';
+document.getElementById('ver').textContent=VERSION;
+document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
+const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
+let tapAt=-1e9;                                    // a touch at the centre stirs the liquid
+function view(about){pn.classList.toggle('about',about);tCol.setAttribute('aria-selected',!about);tAbout.setAttribute('aria-selected',about);pn.scrollTop=0;}
+function openPanel(){tapAt=performance.now();view(false);pn.classList.add('open');hint.classList.remove('on');store.set('lc.hinted','1');setTimeout(()=>tCol.focus({preventScroll:true}),350);}
+function closePanel(){if(!pn.classList.contains('open'))return;pn.classList.remove('open');hub.focus({preventScroll:true});}
+hub.addEventListener('click',()=>pn.classList.contains('open')?closePanel():openPanel());
+tCol.addEventListener('click',()=>view(false));tAbout.addEventListener('click',()=>view(true));
+document.getElementById('pd').addEventListener('click',closePanel);
+addEventListener('pointerdown',e=>{if(pn.classList.contains('open')&&!pn.contains(e.target)&&e.target!==hub)closePanel();});
+addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+applyPalette();
+// the only clue, shown once: a whisper below the hands on the first visit
+if(!store.get('lc.hinted')){setTimeout(()=>{hint.classList.add('on');setTimeout(()=>{hint.classList.remove('on');store.set('lc.hinted','1')},4200)},1800);}
 
 // ---- analog clock overlay ----
 const ck=document.getElementById('clk'),cx=ck.getContext('2d');
@@ -194,13 +260,15 @@ function drawClock(S,t){
  cx.filter='none';cx.restore();}
 
 function frame(ms){
- const S=state(),t=ms/1000,dt=Math.min(.1,(ms-last)/1000);last=ms;
+ const S=state();S.pu=Math.max(S.pu,Math.exp(-(performance.now()-tapAt)/700));const t=ms/1000,dt=Math.min(.1,(ms-last)/1000);last=ms;
  Ph=(Ph+dt*(.9+3.3*S.pu)*(1+3*S.mid))%(Math.PI*2);
  gl.uniform2f(uR,bg.width,bg.height);gl.uniform1f(uT,t);gl.uniform1f(uP,Ph);
  gl.uniform1f(uPu,S.pu);gl.uniform1f(uMid,S.mid);gl.uniform1f(uHa,S.ha);gl.uniform1f(uMa,S.ma);
  gl.drawArrays(gl.TRIANGLES,0,3);drawClock(S,t);requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 
-// tap to keep the screen awake
-addEventListener('click',()=>{try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}});
+// keep the screen awake after the first touch (and again whenever the page comes back)
+function keepAwake(){try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}}
+addEventListener('pointerdown',keepAwake,{once:true});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.userActivation?.hasBeenActive!==false)keepAwake();});
 </script></body></html>
