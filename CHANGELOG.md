@@ -8,6 +8,7 @@ One entry per version. The version is `VERSION` in `index.html`; it shows in Abo
 - New About page beside Colours: how the clock moves, keeping it on display (iPhone and Android), made by bitScribbles, privacy, disclaimer, support (feedback email, Buy me a coffee) and credits.
 - Screen wake lock asked for on the first touch with pointer events (Safari on iPhone doesn't send clicks on the canvas), and asked again when the page comes back into view.
 - Escape closes the panel; the centre target can be reached with the keyboard.
+- LICENSE copyright now reads "Hugh Lindsay (Huge Enterprises)", matching the other bitScribbles apps.
 
 ## 1.0.0 — 5 October 2026
 - Liquid analog clock: churn around the hands, the minute surge, the midnight flood.
