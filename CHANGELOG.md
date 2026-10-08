@@ -5,6 +5,7 @@ One entry per version. The version is `VERSION` in `index.html`; it shows in Abo
 ## 1.2.0 — 7 October 2026
 - The settings panel now wears the bitScribbles brand, dark only: the ink-to-purple gradient, Teal for the selected tab, selected palette, Done and Send feedback, Purple for section labels and the secondary button.
 - Brand type: Space Grotesk for the title, Inter for text, JetBrains Mono for labels and the version, and the "by <bit/>Scribbles" byline in Caveat, as in Metronome. The fonts are served from the app's own `fonts/` folder (about 150 KB, SIL Open Font License), so nothing loads from elsewhere.
+- The disclaimer signs off: "The hour is always closer than you think. Tick tock."
 - The clock face keeps its film look; only the first-visit hint on the clock stays in the serif.
 
 ## 1.1.0 — 6 October 2026
