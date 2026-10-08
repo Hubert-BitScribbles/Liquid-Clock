@@ -2,6 +2,9 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.3.1 — 7 October 2026
+- The dawn blast is a full whiteout: warm white covers the whole screen, hands included, within half a second of sunrise, holds for a second, then fades back to the flowing clock over about ten seconds.
+
 ## 1.3.0 — 7 October 2026
 - New preset, Ballerina: rose and blush veins on snow white, with fire orange as the accent, hot pink at the hand tips, deep rose hands, and spatters of ice blue, gold and flame.
 - Dawn in Paris, wherever you are: at sunrise in Paris (worked out for each day, shown in About in your local time), the liquid builds three times, at five, three and one minute before, each round cut short, then breaks in a flash of warm light at the moment of sunrise and settles over the next minute or so.
