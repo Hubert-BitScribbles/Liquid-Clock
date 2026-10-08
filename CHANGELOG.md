@@ -2,6 +2,9 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.3.0 — 7 October 2026
+- New preset, Ballerina: rose and blush veins on snow white, with fire orange as the accent, hot pink at the hand tips, deep rose hands, and spatters of ice blue, gold and flame.
+
 ## 1.2.1 — 7 October 2026
 - About: the disclaimer now signs off with "The hour is always closer than you think. Tick tock."
 
