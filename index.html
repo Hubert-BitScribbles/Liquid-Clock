@@ -19,6 +19,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
  border:0;border-radius:50%;padding:0;background:transparent;cursor:pointer;z-index:2;
  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
 #hub:focus-visible{outline:2px solid #16B3A3;outline-offset:6px}
+#void{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 45%,#0c0809 0%,#000 70%)}
 #glow{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;
  background:radial-gradient(ellipse at 50% 80%,#ffd79a 0%,#ffae55 45%,#f07a32 100%)}
 #flash{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;
@@ -29,6 +30,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #hint.dark{color:rgba(240,226,190,.75);text-shadow:0 0 12px rgba(0,0,0,.6)}
 #hint.on{opacity:1}
 /* ---- settings panel: bitScribbles brand, dark only ---- */
+@font-face{font-family:'Space Grotesk';font-weight:500;font-display:swap;src:url(fonts/space-grotesk-latin-500-normal.woff2) format('woff2')}
 @font-face{font-family:'Space Grotesk';font-weight:700;font-display:swap;src:url(fonts/space-grotesk-latin-700-normal.woff2) format('woff2')}
 @font-face{font-family:'Inter';font-weight:400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format('woff2')}
 @font-face{font-family:'Inter';font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format('woff2')}
@@ -91,7 +93,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 @media (prefers-reduced-motion:reduce){#pn{transition:none}}
 </style></head>
 <body><canvas id="bg"></canvas><canvas id="clk"></canvas>
-<div id="glow" aria-hidden="true"></div><div id="flash" aria-hidden="true"></div>
+<div id="glow" aria-hidden="true"></div><div id="flash" aria-hidden="true"></div><div id="void" aria-hidden="true"></div>
 <button id="hub" aria-label="Colours and about"></button>
 <div id="hint" aria-hidden="true">Touch the centre</div>
 <div id="pn" role="dialog" aria-label="Liquid Clock settings"><h2><span role="tablist">
@@ -116,8 +118,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <ul>
 <li>The liquid churns hardest around the hands, most of all at their tips.</li>
 <li>In the last ten seconds of every minute it builds, peaks as the minute turns, then settles.</li>
-<li>Midnight is different. For ten minutes before, the swirl spreads across the whole screen. It peaks at 12:00, then slowly calms.</li>
-<li>Dawn in Paris is different again, wherever you are. The liquid builds three times, each one cut short, then the screen burns white as the sun comes up, gives way to orange morning light, and the clock slowly finds its way back. <span id="dawn"></span></li>
+<li>Midnight is different. For ten minutes before, the swirl spreads across the whole screen. At 12:00 it cuts to black, and the clock slowly finds its way back over the next minute.</li>
+<li>Dawn in Paris is different again, wherever you are. The liquid builds three times, each one cut short, then the screen burns white as the sun comes up, gives way to a long wash of orange morning light, and the clock slowly finds its way back over the next minute. <span id="dawn"></span></li>
 <li>Touch the centre of the clock to open this screen. Nothing else is a button.</li>
 </ul>
 
@@ -252,7 +254,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.4.0';
+const VERSION='1.5.0';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
@@ -268,6 +270,7 @@ tCol.addEventListener('click',()=>view(false));tAbout.addEventListener('click',(
 document.getElementById('pd').addEventListener('click',closePanel);
 addEventListener('pointerdown',e=>{if(pn.classList.contains('open')&&!pn.contains(e.target)&&e.target!==hub)closePanel();});
 addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+try{document.fonts.load('500 20px "Space Grotesk"')}catch(e){}   // the face numerals draw on a canvas, so fetch the font up front
 applyPalette();
 // ---- style: edges, hands, face ----
 let STYLE={ink:'0',hands:'bold',face:'plain'};try{Object.assign(STYLE,JSON.parse(store.get('lc.style')||'{}'))}catch(e){}
@@ -311,8 +314,8 @@ function dawnState(now){const x=(now-dawnNear(now))/1000;if(Math.abs(x)>900)retu
  const blast=x<0?(x>-6?Math.exp(x/1.2):0):Math.exp(-x/.8);          // gone within ~2 s, while the screen is still white
  const fl=x<0?(x>-6?Math.exp(x/1.2):0):Math.exp(-x/10);
  const ss=(a,b,v)=>{const u=Math.min(1,Math.max(0,(v-a)/(b-a)));return u*u*(3-2*u)};
- const white=x<-.4||x>10?0:x<0?(x+.4)/.4:1-ss(.8,3,x);                // warm white over everything: in by sunrise, gone by +3 s
- const sun=x<-.4||x>10?0:x<3?1:Math.pow(1-(x-3)/7,1.4);              // then a wash of orange morning light, fading out by +10 s
+ const white=x<-.4||x>60?0:x<0?(x+.4)/.4:1-ss(4,14,x);               // warm white over everything: in by sunrise, holds ~4 s, gone by +14 s
+ const sun=x<-.4||x>60?0:x<12?1:Math.pow(1-(x-12)/48,1.4);           // then a long wash of orange morning light, gone by +60 s
  return{ev:Math.min(1.15,Math.max(ev,blast*1.15)),fl,white,sun};}
 
 // preview a time: add ?t=23:59:30 to the URL, or ?dawn for the run-up to the next Paris dawn
@@ -325,9 +328,10 @@ function state(){
   m=d.getMinutes()+sec/60,h=(d.getHours()%12)+m/60;
  const pu=Math.max(Math.exp(-sec/5),Math.pow(Math.max(0,(sec-50)/10),2)); // minute surge
  const day=d.getHours()*3600+d.getMinutes()*60+sec,x=day>43200?day-86400:day; // signed secs from midnight
- const midn=x<0?Math.exp(x/300):Math.exp(-x/120);                            // builds 10 min before, fades after
+ const midn=x<0?Math.exp(x/300):Math.exp(-x/.8);                             // builds 10 min before; the churn dies under the black
+ const black=x<-.3||x>60?0:x<0?(x+.3)/.3:x<5?1:Math.pow(1-(x-5)/55,1.3);     // at 12:00 everything cuts to black, holds ~5 s, returns by +60 s
  const dw=dawnState(d.getTime());
- return{ha:h*Math.PI/6,ma:m*Math.PI/30,pu,mid:Math.max(midn,dw.ev),fl:dw.fl,white:dw.white||0,sun:dw.sun||0};}
+ return{ha:h*Math.PI/6,ma:m*Math.PI/30,pu,mid:Math.max(midn,dw.ev),fl:dw.fl,white:dw.white||0,sun:dw.sun||0,black};}
 
 function hand(a,len,wd,tail,seed,mo,t){
  cx.save();cx.rotate(a);const N=28,L=[],Rt=[];
@@ -342,10 +346,10 @@ function hand(a,len,wd,tail,seed,mo,t){
 
 function drawFace(R){                               // optional: a dotted minute ring and 12, 3, 6, 9
  cx.save();cx.fillStyle=PAL.core;cx.globalAlpha=1;cx.filter=`blur(${R*.003}px)`;
- for(let i=0;i<60;i++){if(i%15===0)continue;const a=i*Math.PI/30,r=i%5===0?R*.02:R*.011;
+ for(let i=0;i<60;i++){const a=i*Math.PI/30,r=i%15===0?R*.024:i%5===0?R*.018:R*.01;
   cx.beginPath();cx.arc(Math.sin(a)*R,-Math.cos(a)*R,r,0,7);cx.fill();}
- cx.font=`400 ${R*.18}px "Helvetica Neue",Helvetica,Arial,sans-serif`;cx.textAlign='center';cx.textBaseline='middle';
- [[12,0],[3,1],[6,2],[9,3]].forEach(([n,q])=>{const a=q*Math.PI/2;cx.fillText(n,Math.sin(a)*R,-Math.cos(a)*R+R*.01);});
+ cx.font=`500 ${R*.17}px "Space Grotesk",-apple-system,system-ui,sans-serif`;cx.textAlign='center';cx.textBaseline='middle';
+ [[12,0],[3,1],[6,2],[9,3]].forEach(([n,q])=>{const a=q*Math.PI/2,rr=R*.8;cx.fillText(n,Math.sin(a)*rr,-Math.cos(a)*rr+R*.012);}); // inside the ring
  cx.restore();}
 
 function drawClock(S,t){
@@ -369,8 +373,8 @@ function frame(ms){
  gl.uniform2f(uR,bg.width,bg.height);gl.uniform1f(uT,t);gl.uniform1f(uP,Ph);
  gl.uniform1f(uPu,S.pu);gl.uniform1f(uMid,S.mid);gl.uniform1f(uQ,Qa);gl.uniform1f(uFl,S.fl);gl.uniform1f(uHa,S.ha);gl.uniform1f(uMa,S.ma);
  gl.drawArrays(gl.TRIANGLES,0,3);drawClock(S,t);
- flashEl.style.opacity=S.white.toFixed(3);glowEl.style.opacity=S.sun.toFixed(3);requestAnimationFrame(frame);}
-const flashEl=document.getElementById('flash'),glowEl=document.getElementById('glow');
+ flashEl.style.opacity=S.white.toFixed(3);glowEl.style.opacity=S.sun.toFixed(3);voidEl.style.opacity=S.black.toFixed(3);requestAnimationFrame(frame);}
+const flashEl=document.getElementById('flash'),glowEl=document.getElementById('glow'),voidEl=document.getElementById('void');
 requestAnimationFrame(frame);
 
 // keep the screen awake after the first touch (and again whenever the page comes back)
