@@ -66,6 +66,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #vAbout .by .bit{font:500 15px var(--mono);color:var(--teal)}
 #vAbout .by .scr{font:600 24px/1 'Caveat',cursive;color:var(--paper);margin-left:-3px}
 #vAbout .lede{margin:0 0 6px;font:700 17px/1.35 var(--ui);color:var(--paper)}
+#vAbout .signoff{margin-top:12px;font:600 22px/1.25 'Caveat',cursive;color:var(--paper)}
 #vAbout .ver{font:500 12px var(--mono);letter-spacing:.06em;color:var(--mid)}
 #vAbout h3{margin:22px 0 8px;font:500 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--purple-text)}
 #vAbout hr{border:0;border-top:1px solid var(--rule);margin:14px 0 0}
@@ -117,6 +118,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <h3>Disclaimer</h3>
 <p>Liquid Clock is a fan-made tribute. It isn't affiliated with or endorsed by the makers of the John Wick films. It's provided as is, without warranty. When the time really matters, check another clock too.</p>
+<p class="signoff">The hour is always closer than you think. Tick tock.</p>
 
 <h3>Support</h3>
 <p>Ideas, problems, a palette you'd like to see: write any time.</p>
@@ -222,7 +224,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.2.0';
+const VERSION='1.2.1';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
