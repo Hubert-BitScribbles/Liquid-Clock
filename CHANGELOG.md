@@ -2,6 +2,9 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.3.2 — 7 October 2026
+- Dawn blast: the screen burns warm white (hands and swirls hidden), gives way to orange morning light at about two seconds, and returns to the regular clock by ten seconds. The blast's churn now dies away while the screen is still white, so the fade reveals the calm clock, not full-screen swirls.
+
 ## 1.3.1 — 7 October 2026
 - The dawn blast is a full whiteout: warm white covers the whole screen, hands included, within half a second of sunrise, holds for a second, then fades back to the flowing clock over about ten seconds.
 
