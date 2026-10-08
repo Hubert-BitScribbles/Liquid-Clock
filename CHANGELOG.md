@@ -2,6 +2,9 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.2.1 — 7 October 2026
+- About: the disclaimer now signs off with "The hour is always closer than you think. Tick tock."
+
 ## 1.2.0 — 7 October 2026
 - The settings panel now wears the bitScribbles brand, dark only: the ink-to-purple gradient, Teal for the selected tab, selected palette, Done and Send feedback, Purple for section labels and the secondary button.
 - Brand type: Space Grotesk for the title, Inter for text, JetBrains Mono for labels and the version, and the "by <bit/>Scribbles" byline in Caveat, as in Metronome. The fonts are served from the app's own `fonts/` folder (about 150 KB, SIL Open Font License), so nothing loads from elsewhere.
