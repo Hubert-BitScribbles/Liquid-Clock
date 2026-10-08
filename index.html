@@ -101,6 +101,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <li>The liquid churns hardest around the hands, most of all at their tips.</li>
 <li>In the last ten seconds of every minute it builds, peaks as the minute turns, then settles.</li>
 <li>Midnight is different. For ten minutes before, the swirl spreads across the whole screen. It peaks at 12:00, then slowly calms.</li>
+<li>Dawn in Paris is different again, wherever you are. The liquid builds three times, each one cut short, then breaks in a flash of light as the sun comes up. <span id="dawn"></span></li>
 <li>Touch the centre of the clock to open this screen. Nothing else is a button.</li>
 </ul>
 
@@ -134,7 +135,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 // ---- liquid background (WebGL, domain-warped noise) ----
 const bg=document.getElementById('bg'),gl=bg.getContext('webgl');
 const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
-const fs=`precision highp float;uniform vec2 r;uniform float t,ha,ma,P,pu,mid;
+const fs=`precision highp float;uniform vec2 r;uniform float t,ha,ma,P,pu,mid,Q,fl;
 uniform vec3 cBase,cW1,cW2,cAcc,cDeep,cHi,cPlum,cPlumD,cS1,cS2,cS3;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
@@ -148,12 +149,13 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*r)/min(r.x,r.y)*1.6;
  vec2 ht=vec2(sin(ha),cos(ha))*R*.62,mt=vec2(sin(ma),cos(ma))*R*.95;
  float tip=exp(-min(length(uv-ht),length(uv-mt))*4.);   // hotspots at the hand tips
  float inf=max(exp(-d*3.2),mid*.9);                     // midnight floods the whole screen                                  // wide zone around the hands
- float amp=inf*(.35+.55*pu)*(1.+1.6*mid);                             // surges as the minute turns
+ float amp=exp(-d*3.2)*(.35+.55*pu);                         // ripples stay near the hands; spread across the screen they fold into a grid
  uv+=amp*vec2(sin(P+uv.y*5.),cos(P+uv.x*5.));
- uv+=amp*.4*vec2(sin(2.*P+uv.x*9.+1.),cos(2.*P-uv.y*9.));
- float s=t*.033;
- vec2 q=vec2(fbm(uv+s),fbm(uv+vec2(5.2,1.3)-s));
- vec2 w=vec2(fbm(uv+3.*q+vec2(1.7,9.2)+s*1.3),fbm(uv+3.*q+vec2(8.3,2.8)-s));
+ uv+=amp*.22*vec2(sin(2.*P+uv.x*9.+1.),cos(2.*P-uv.y*9.));
+ uv+=mid*1.1*(vec2(fbm(uv*1.1+vec2(Q,0.)),fbm(uv*1.1+vec2(-Q,5.)))-.5); // big events churn through the noise itself: organic, no grid
+ float s=t*.033+Q;                                          // Q runs faster during events
+ vec2 q=vec2(fbm(uv+s),fbm(uv+vec2(5.2,1.3)-s));float wg=3.+1.5*mid;
+ vec2 w=vec2(fbm(uv+wg*q+vec2(1.7,9.2)+s*1.3),fbm(uv+wg*q+vec2(8.3,2.8)-s));
  float f=fbm(uv+3.*w);
  vec3 c=cBase;                                   // white base
  vec3 warm=mix(cW1,cW2,fbm(uv*2.+w)); // reds to oranges
@@ -167,6 +169,7 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*r)/min(r.x,r.y)*1.6;
  vec3 prim=sel<.42?cS1:sel<.55?cS2:cS3; // electric blue, gold, teal
  float g=.18*tip+.08*pu*inf;c=mix(c,prim,smoothstep(.66-g,.74-g,sp)*.92);                     // primary spatter
  c*=.9+.12*f;                                                // gentle depth
+ c=mix(c,vec3(1.,.9,.72),fl*.45);                            // dawn: a flash of warm light at the blast
  gl_FragColor=vec4(c,1.);}`;
 function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}
 const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
@@ -231,7 +234,10 @@ document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
 let tapAt=-1e9;                                    // a touch at the centre stirs the liquid
 function view(about){pn.classList.toggle('about',about);tCol.setAttribute('aria-selected',!about);tAbout.setAttribute('aria-selected',about);pn.scrollTop=0;}
-function openPanel(){tapAt=performance.now();view(false);pn.classList.add('open');hint.classList.remove('on');store.set('lc.hinted','1');setTimeout(()=>tCol.focus({preventScroll:true}),350);}
+function showDawn(){const n=Date.now()+off,v=dawnNext(n),d=new Date(v),t=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),
+ same=new Date(n).toDateString()===d.toDateString();
+ document.getElementById('dawn').textContent='The next one is at '+t+(same?' today':' tomorrow')+', your time.';}
+function openPanel(){showDawn();tapAt=performance.now();view(false);pn.classList.add('open');hint.classList.remove('on');store.set('lc.hinted','1');setTimeout(()=>tCol.focus({preventScroll:true}),350);}
 function closePanel(){if(!pn.classList.contains('open'))return;pn.classList.remove('open');hub.focus({preventScroll:true});}
 hub.addEventListener('click',()=>pn.classList.contains('open')?closePanel():openPanel());
 tCol.addEventListener('click',()=>view(false));tAbout.addEventListener('click',()=>view(true));
@@ -244,24 +250,48 @@ if(!store.get('lc.hinted')){setTimeout(()=>{hint.classList.add('on');setTimeout(
 
 // ---- analog clock overlay ----
 const ck=document.getElementById('clk'),cx=ck.getContext('2d');
-const uP=gl.getUniformLocation(pr,'P'),uPu=gl.getUniformLocation(pr,'pu'),uMid=gl.getUniformLocation(pr,'mid'),
+const uP=gl.getUniformLocation(pr,'P'),uPu=gl.getUniformLocation(pr,'pu'),uMid=gl.getUniformLocation(pr,'mid'),uQ=gl.getUniformLocation(pr,'Q'),uFl=gl.getUniformLocation(pr,'fl'),
       uHa=gl.getUniformLocation(pr,'ha'),uMa=gl.getUniformLocation(pr,'ma');
-let W,H,D,Ph=0,last=0;
+let W,H,D,Ph=0,Qa=0,last=0;
 function size(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
  bg.width=W*D*.5;bg.height=H*D*.5;ck.width=W*D;ck.height=H*D;gl.viewport(0,0,bg.width,bg.height);}
 addEventListener('resize',size);size();
 
-// preview a time: add ?t=23:59:30 to the URL
+// ---- dawn in Paris, wherever you are: the hour of the duel ----
+// Sunrise for Paris (48.8566 N, 2.3522 E) by the Almanac for Computers method; within a minute or two of published times.
+function parisSunrise(dayUTC){const R=Math.PI/180,lat=48.8566,lon=2.3522,d=new Date(dayUTC),
+ N=Math.round((Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())-Date.UTC(d.getUTCFullYear(),0,0))/864e5),
+ lh=lon/15,t=N+(6-lh)/24,M=.9856*t-3.289,L=(M+1.916*Math.sin(M*R)+.02*Math.sin(2*M*R)+282.634+360)%360;
+ let RA=(Math.atan(.91764*Math.tan(L*R))/R+360)%360;RA=(RA+Math.floor(L/90)*90-Math.floor(RA/90)*90)/15;
+ const sd=.39782*Math.sin(L*R),cd=Math.cos(Math.asin(sd)),ch=(Math.cos(90.833*R)-sd*Math.sin(lat*R))/(cd*Math.cos(lat*R)),
+ H=(360-Math.acos(ch)/R)/15,UT=((H+RA-.06571*t-6.622-lh)%24+24)%24;
+ return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())+UT*36e5;}
+const dawnCache={};
+function dawnNear(now){const day=Math.floor(now/864e5)*864e5;let best=null;
+ for(const k of [-1,0,1]){const dd=day+k*864e5;const v=dawnCache[dd]??(dawnCache[dd]=parisSunrise(dd));
+  if(best===null||Math.abs(v-now)<Math.abs(best-now))best=v;}return best;}
+function dawnNext(now){const day=Math.floor(now/864e5)*864e5;
+ for(const k of [0,1,2]){const v=parisSunrise(day+k*864e5);if(v>now)return v;}}
+// three rounds, each building and then cut short, a minute and a bit apart; the blast at the moment of sunrise
+const ROUNDS=[[-300,.6],[-180,.75],[-60,.9]];
+function dawnState(now){const x=(now-dawnNear(now))/1000;if(Math.abs(x)>900)return{ev:0,fl:0};
+ let ev=0;for(const [c,a] of ROUNDS){const u=x-c;if(u>-50&&u<40)ev=Math.max(ev,a*(u<0?Math.exp(u/16):Math.exp(-u/5)));}
+ const blast=x<0?(x>-6?Math.exp(x/1.2):0):Math.exp(-x/45);
+ return{ev:Math.min(1.15,Math.max(ev,blast*1.15)),fl:x<0?(x>-6?Math.exp(x/1.2):0):Math.exp(-x/10)};}
+
+// preview a time: add ?t=23:59:30 to the URL, or ?dawn for the run-up to the next Paris dawn
 let off=0;{const m=/t=(\d+):(\d+)(?::(\d+))?/.exec(location.search);
- if(m){const d=new Date();d.setHours(+m[1],+m[2],+(m[3]||0),0);off=d-Date.now();}}
+ if(m){const d=new Date();d.setHours(+m[1],+m[2],+(m[3]||0),0);off=d-Date.now();}
+ if(/[?&]dawn\b/.test(location.search))off=dawnNext(Date.now())-390e3-Date.now();}
 
 function state(){
  const d=new Date(Date.now()+off),sec=d.getSeconds()+d.getMilliseconds()/1000,
   m=d.getMinutes()+sec/60,h=(d.getHours()%12)+m/60;
  const pu=Math.max(Math.exp(-sec/5),Math.pow(Math.max(0,(sec-50)/10),2)); // minute surge
  const day=d.getHours()*3600+d.getMinutes()*60+sec,x=day>43200?day-86400:day; // signed secs from midnight
- const mid=x<0?Math.exp(x/300):Math.exp(-x/120);                             // builds 10 min before, fades after
- return{ha:h*Math.PI/6,ma:m*Math.PI/30,pu,mid};}
+ const midn=x<0?Math.exp(x/300):Math.exp(-x/120);                            // builds 10 min before, fades after
+ const dw=dawnState(d.getTime());
+ return{ha:h*Math.PI/6,ma:m*Math.PI/30,pu,mid:Math.max(midn,dw.ev),fl:dw.fl};}
 
 function hand(a,len,wd,tail,seed,mo,t){
  cx.save();cx.rotate(a);const N=28,L=[],Rt=[];
@@ -290,9 +320,9 @@ function drawClock(S,t){
 
 function frame(ms){
  const S=state();S.pu=Math.max(S.pu,Math.exp(-(performance.now()-tapAt)/700));const t=ms/1000,dt=Math.min(.1,(ms-last)/1000);last=ms;
- Ph=(Ph+dt*(.9+3.3*S.pu)*(1+3*S.mid))%(Math.PI*2);
+ Ph=(Ph+dt*(.9+3.3*S.pu)*(1+1.5*S.mid))%(Math.PI*2);Qa+=dt*.35*S.mid;
  gl.uniform2f(uR,bg.width,bg.height);gl.uniform1f(uT,t);gl.uniform1f(uP,Ph);
- gl.uniform1f(uPu,S.pu);gl.uniform1f(uMid,S.mid);gl.uniform1f(uHa,S.ha);gl.uniform1f(uMa,S.ma);
+ gl.uniform1f(uPu,S.pu);gl.uniform1f(uMid,S.mid);gl.uniform1f(uQ,Qa);gl.uniform1f(uFl,S.fl);gl.uniform1f(uHa,S.ha);gl.uniform1f(uMa,S.ma);
  gl.drawArrays(gl.TRIANGLES,0,3);drawClock(S,t);requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 

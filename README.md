@@ -10,7 +10,7 @@ One self-contained `index.html` — WebGL for the liquid, a 2D canvas for the ha
 ## Working on it
 - Changes go on a branch; merge to `main` to publish (Cloudflare deploys `main`).
 - Bump `VERSION` in `index.html` on the branch, with an entry in `CHANGELOG.md`. The last number is for fixes, the middle one for features.
-- Add `?t=23:58` to the address to preview a time (useful for the midnight flood).
+- Add `?t=23:58` to the address to preview a time (useful for the midnight flood), or `?dawn` for the run-up to the next Paris dawn.
 
 ## Licence
 MIT — see `LICENSE`.
