@@ -2,6 +2,15 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.4.0 — 8 October 2026
+Inspired by a frame of the film's clock (our own take, not a copy).
+- New preset, Seine: sky-blue water with white patches, red blooms, ochre flecks and maroon depths.
+- New Style controls under the palettes, remembered like the colours:
+  - Edges: Soft (as before) or Ink, a thin dark line along every colour edge, like marbled paper. Each palette has an ink colour; Seine's is maroon.
+  - Hands: Bold (as before) or Fine, thin and dark.
+  - Face: Plain (as before) or Markings, a dotted minute ring with 12, 3, 6 and 9.
+- If a browser can't draw the ink lines, the clock simply stays soft.
+
 ## 1.3.2 — 7 October 2026
 - Dawn blast: the screen burns warm white (hands and swirls hidden), gives way to orange morning light at about two seconds, and returns to the regular clock by ten seconds. The blast's churn now dies away while the screen is still white, so the fade reveals the calm clock, not full-screen swirls.
 
