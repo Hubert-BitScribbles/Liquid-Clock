@@ -18,43 +18,66 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #hub{position:fixed;left:50%;top:50%;width:min(28vmin,128px);height:min(28vmin,128px);transform:translate(-50%,-50%);
  border:0;border-radius:50%;padding:0;background:transparent;cursor:pointer;z-index:2;
  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
-#hub:focus-visible{outline:1px solid rgba(228,194,120,.75);outline-offset:6px}
+#hub:focus-visible{outline:2px solid #16B3A3;outline-offset:6px}
 #hint{position:fixed;left:50%;bottom:calc(7vh + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:3;pointer-events:none;
  font:500 12px/1 'Didot','Bodoni 72',Georgia,serif;letter-spacing:.32em;text-transform:uppercase;color:rgba(40,28,20,.7);text-shadow:0 0 12px rgba(255,255,255,.6);
  opacity:0;transition:opacity 1.6s;white-space:nowrap}
 #hint.dark{color:rgba(240,226,190,.75);text-shadow:0 0 12px rgba(0,0,0,.6)}
 #hint.on{opacity:1}
-#pn{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120%);
- width:min(620px,calc(100% - 24px));max-height:88vh;overflow:auto;box-sizing:border-box;padding:18px 16px 16px;
- border-radius:18px;border:1px solid rgba(228,194,120,.28);background:rgba(14,11,10,.82);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
- color:#f5f0f6;font:15px/1.3 -apple-system,system-ui,sans-serif;transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:3}
+/* ---- settings panel: bitScribbles brand, dark only ---- */
+@font-face{font-family:'Space Grotesk';font-weight:700;font-display:swap;src:url(fonts/space-grotesk-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-weight:500;font-display:swap;src:url(fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Caveat';font-weight:600;font-display:swap;src:url(fonts/caveat-latin-600-normal.woff2) format('woff2')}
+#pn{--ink:#14171C;--paper:#FAFAF9;--teal:#16B3A3;--purple:#6E56CF;--purple-text:#A898F5;--amber:#F2B134;
+ --text:rgba(250,250,249,.92);--mid:rgba(250,250,249,.65);--rule:rgba(250,250,249,.10);
+ --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--ui:'Space Grotesk',-apple-system,system-ui,sans-serif;--body:'Inter',-apple-system,system-ui,sans-serif;
+ position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120%);
+ width:min(620px,calc(100% - 24px));max-height:88vh;overflow:auto;box-sizing:border-box;padding:16px 18px 18px;border-radius:20px;
+ background:linear-gradient(135deg,rgba(20,23,28,.94),rgba(28,21,53,.94) 55%,rgba(110,86,207,.9) 160%);
+ -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--rule);box-shadow:0 18px 50px rgba(0,0,0,.45);
+ color:var(--text);font:400 15px/1.45 var(--body);transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:3;scrollbar-width:thin}
 #pn.open{transform:translate(-50%,0)}
-#pn h2{margin:0 0 14px;display:flex;justify-content:space-between;align-items:center;gap:12px}
-#pn h2 span{display:flex;gap:18px}
-.tab{opacity:.55;padding:4px 0;border-bottom:1px solid transparent!important}
-.tab[aria-selected=true]{opacity:1;border-bottom-color:rgba(228,194,120,.7)!important}
+#pn h2{margin:0 0 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;
+ padding-bottom:10px;border-bottom:1px solid var(--rule)}
+#pn h2 span{display:flex;gap:20px}
+#pn h2 button{background:none;border:0;padding:4px 0;cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
+#pn h2 .tab{border-bottom:2px solid transparent;padding-bottom:6px;margin-bottom:-11px}
+#pn h2 .tab[aria-selected=true]{color:var(--paper);border-bottom-color:var(--teal)}
+#pn h2 #pd{color:var(--teal);font-weight:500;border-bottom:2px solid transparent;padding-bottom:6px;margin-bottom:-11px}
+#pn button:focus-visible,#pn a:focus-visible,#pn input:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:6px}
+#ps{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:12px}
+.pc{background:none;border:0;color:var(--mid);font:400 12px/1.3 var(--body);cursor:pointer;padding:0;text-align:center}
+.pc i{display:block;aspect-ratio:1;max-height:72px;width:100%;margin-inline:auto;border-radius:14px;margin-bottom:6px;
+ outline:2px solid transparent;outline-offset:3px;box-shadow:inset 0 0 0 1px var(--rule)}
+.pc.on{color:var(--paper);font-weight:600}
+.pc.on i{outline-color:var(--teal)}
+#cu{display:none;margin-top:18px;padding-top:14px;border-top:1px solid var(--rule);grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 16px}
+#cu.show{display:grid}
+#cu label{display:flex;align-items:center;justify-content:space-between;gap:8px;font:400 13px var(--body);color:var(--mid)}
+#cu input{width:40px;height:30px;border:0;padding:0;background:none;border-radius:8px;cursor:pointer}
 #vAbout{display:none}
 #pn.about #vAbout{display:block}
 #pn.about #vCol{display:none}
-#vAbout h3{margin:20px 0 6px;font:500 12px/1.2 'Didot','Bodoni 72',Georgia,serif;letter-spacing:.24em;text-transform:uppercase;color:#e4c278}
-#vAbout h3:first-child{margin-top:4px}
-#vAbout p,#vAbout li{margin:0 0 8px;font-size:14px;line-height:1.5;color:rgba(245,240,230,.86);max-width:62ch}
+#vAbout .title{margin:2px 0 4px;font:700 30px/1.1 var(--ui);letter-spacing:-.01em;color:var(--paper)}
+#vAbout .by{display:flex;align-items:baseline;gap:6px;margin:0 0 14px}
+#vAbout .by .b{font:500 12px var(--mono);color:var(--mid)}
+#vAbout .by .bit{font:500 15px var(--mono);color:var(--teal)}
+#vAbout .by .scr{font:600 24px/1 'Caveat',cursive;color:var(--paper);margin-left:-3px}
+#vAbout .lede{margin:0 0 6px;font:700 17px/1.35 var(--ui);color:var(--paper)}
+#vAbout .ver{font:500 12px var(--mono);letter-spacing:.06em;color:var(--mid)}
+#vAbout h3{margin:22px 0 8px;font:500 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--purple-text)}
+#vAbout hr{border:0;border-top:1px solid var(--rule);margin:14px 0 0}
+#vAbout p,#vAbout li{margin:0 0 8px;font-size:14px;line-height:1.55;color:var(--text);max-width:62ch}
 #vAbout ul{margin:0;padding-left:18px}
-#vAbout a{color:#e4c278}
-#vAbout .lede{font:italic 17px/1.4 'Didot','Bodoni 72',Georgia,serif;color:#f5f0e6}
-#vAbout .ver{font-size:12px;letter-spacing:.06em;color:rgba(245,240,230,.55)}
-#vAbout .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
-#vAbout .links a{display:inline-block;padding:9px 14px;border:1px solid rgba(228,194,120,.4);border-radius:999px;text-decoration:none;font-size:13px}
-#pn h2 button{background:none;border:0;color:#e4c278;font:500 13px 'Didot','Bodoni 72',Georgia,serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
-#pn button:focus-visible,#pn a:focus-visible{outline:1px solid #e4c278;outline-offset:3px}
-#ps{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px}
-.pc{background:none;border:0;color:inherit;font:12px -apple-system,system-ui,sans-serif;cursor:pointer;padding:0;text-align:center}
-.pc i{display:block;aspect-ratio:1;max-height:72px;width:100%;margin-inline:auto;border-radius:14px;margin-bottom:5px;outline:2px solid transparent;outline-offset:2px}
-.pc.on i{outline-color:#e4c278}
-#cu{display:none;margin-top:16px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 14px}
-#cu.show{display:grid}
-#cu label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;opacity:.9}
-#cu input{width:40px;height:30px;border:0;padding:0;background:none;border-radius:8px;cursor:pointer}
+#vAbout li::marker{color:var(--teal)}
+#vAbout a{color:var(--teal)}
+#vAbout .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+#vAbout .links a{display:inline-block;padding:10px 16px;border-radius:999px;text-decoration:none;font:600 13px var(--body)}
+#vAbout .links .primary{background:var(--teal);color:var(--ink)}
+#vAbout .links .secondary{border:1px solid rgba(110,86,207,.7);color:var(--paper)}
+@media (prefers-reduced-motion:reduce){#pn{transition:none}}
 </style></head>
 <body><canvas id="bg"></canvas><canvas id="clk"></canvas>
 <button id="hub" aria-label="Colours and about"></button>
@@ -65,10 +88,12 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <button id="pd">Done</button></h2>
 <div id="vCol"><div id="ps"></div><div id="cu"></div></div>
 <div id="vAbout">
-<h3>Liquid Clock</h3>
+<p class="title">Liquid Clock</p>
+<p class="by"><span class="b">by</span><span class="bit">&lt;bit/&gt;</span><span class="scr">Scribbles</span></p>
 <p class="lede">Time, kept in moving colour.</p>
 <p>Two big hands over a living background, and nothing else on the screen.</p>
 <p class="ver">Version <span id="ver"></span></p>
+<hr>
 
 <h3>How it moves</h3>
 <ul>
@@ -95,11 +120,12 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <h3>Support</h3>
 <p>Ideas, problems, a palette you'd like to see: write any time.</p>
-<p class="links"><a id="mail" href="mailto:support@bitscribbles.com">Send feedback</a>
-<a href="https://www.buymeacoffee.com/bitscribbles" target="_blank" rel="noopener">Buy me a coffee</a></p>
+<p class="links"><a id="mail" class="primary" href="mailto:support@bitscribbles.com">Send feedback</a>
+<a class="secondary" href="https://www.buymeacoffee.com/bitscribbles" target="_blank" rel="noopener">Buy me a coffee</a></p>
 
 <h3>Credits</h3>
 <p>Open source under the MIT licence. The code is on <a href="https://github.com/Hubert-BitScribbles/Liquid-Clock" target="_blank" rel="noopener">GitHub</a>.</p>
+<p>Fonts: Space Grotesk, Inter, JetBrains Mono and Caveat, under the SIL Open Font License.</p>
 <p>© 2026 bitScribbles</p>
 </div></div>
 <script>
@@ -196,7 +222,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.1.0';
+const VERSION='1.2.0';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
