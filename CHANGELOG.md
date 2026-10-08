@@ -2,6 +2,11 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.5.0 — 8 October 2026
+- Midnight: after its ten-minute build of full-screen swirls, at 12:00 everything cuts to black (hands and liquid hidden), holds for about five seconds, then slowly returns to the calm clock over a minute. The swirling dies away under the black.
+- Paris dawn, now about a minute: the white holds for about four seconds, then a long wash of orange morning light fades out slowly, and the calm clock is fully back at about sixty seconds.
+- Face markings: the numerals 12, 3, 6 and 9 now sit inside the dotted ring, in Space Grotesk (from the bitScribbles brand), and the ring is complete.
+
 ## 1.4.0 — 8 October 2026
 Inspired by a frame of the film's clock (our own take, not a copy).
 - New preset, Seine: sky-blue water with white patches, red blooms, ochre flecks and maroon depths.
