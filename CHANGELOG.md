@@ -2,6 +2,10 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.5.1 — 8 October 2026
+- New app icon, in the family of the other bitScribbles apps: a purple tile with a white clock face, purple liquid rising in its lower half, and deep-purple hands at 10:10. Purple is Liquid Clock's colour, as amber is Metronome's and teal is Clear Tracker's.
+- Full icon set: Home Screen (192, 512), a maskable icon for Android, an Apple touch icon and a favicon. Made by `design/make-icons.py` from `design/liquid-icon.svg`.
+
 ## 1.5.0 — 8 October 2026
 - Midnight: after its ten-minute build of full-screen swirls, at 12:00 everything cuts to black (hands and liquid hidden), holds for about five seconds, then slowly returns to the calm clock over a minute. The swirling dies away under the black.
 - Paris dawn, now about a minute: the white holds for about four seconds, then a long wash of orange morning light fades out slowly, and the calm clock is fully back at about sixty seconds.
