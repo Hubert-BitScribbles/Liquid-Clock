@@ -74,6 +74,17 @@ with sync_playwright() as p:
     s = at(pg, D, 65); ok(s['sun'] == 0, 'dawn: clock back after a minute')
     ok(pg.evaluate("Math.abs(parisSunrise(Date.UTC(2026,5,21))-Date.UTC(2026,5,21,3,47))") < 180e3, 'Paris sunrise on 21 June 2026 within 3 minutes of 05:47 CEST')
 
+    # battery: 30 fps while calm, every frame for the big moments, 10 fps under full cover
+    gap = lambda base_js, x: pg.evaluate(f"x=>{{const B={base_js};off=B+x-Date.now();return frameGap(state(),1e9)}}", int(x*1000))  # set and read in one go
+    calm = gap("Date.now()-(new Date().getSeconds()-25)*1000", 0)
+    ok(30 <= calm <= 34, f'battery: calm clock draws at 30 fps (gap {calm:.0f} ms)')
+    ok(gap(M, -90) == 0, 'battery: midnight build at full speed')
+    ok(gap(M, 3) == 100, 'battery: 10 fps under full black')
+    ok(gap(M, 30) == 0, 'battery: full speed while the black fades')
+    ok(gap(D, -62) == 0, 'battery: dawn rounds at full speed')
+    ok(gap(D, 2) == 100, 'battery: 10 fps under full white')
+    ok(pg.evaluate("frameGap({white:0,sun:0,black:0,mid:0},200)") == 0, 'battery: full speed just after a touch')
+
     # reduce motion: a calmer clock
     rm = b.new_context(viewport={"width": 844, "height": 390}, reduced_motion='reduce').new_page()
     rm.goto(URL + "?t=23:59:00"); rm.wait_for_timeout(800)
