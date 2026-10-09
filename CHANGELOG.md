@@ -2,6 +2,17 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.6.0 — 9 October 2026
+A review to tighten loose ends, as done for Metronome.
+- Works offline once opened: a service worker keeps the clock, icons and fonts (network first, saved copy after 3 seconds or with no connection).
+- About: the origin is told right. The clock that inspired it is glimpsed during the hour-long run across Paris that leads up to the final duel, not in the final act. The intro no longer promises "big hands" and "nothing else", now that Fine hands and Markings exist. It also mentions offline use and reduce motion.
+- Respects Reduce Motion: the liquid's surges and the midnight and dawn churn run at a third of their strength. The blackout and the dawn light still fade in and out, slowly.
+- Battery: the clock draws at 30 frames a second while calm (most of the time), full speed only for the midnight build, the dawn rounds, the fades and just after a touch, and 10 a second while white, orange or black covers the screen.
+- Keyboard: the closed settings panel is no longer reachable with Tab. The Style heading sits at the right level for screen readers.
+- Manifest in the family format: "Liquid Clock by bitScribbles", scope, and Ink for the splash and theme colours. Adds the standard `mobile-web-app-capable` tag.
+- Tidy: an unused shader function removed, and comments brought up to date.
+- `checks/check.py`: browser checks for the centre tap, the panel, keyboard, persistence, the midnight and dawn timelines, Paris sunrise, reduce motion, offline and accessibility (axe). Tooling lives in `checks/`, so the repo root stays plain files.
+
 ## 1.5.1 — 8 October 2026
 - New app icon, in the family of the other bitScribbles apps: a purple tile with a white clock face, purple liquid rising in its lower half, and deep-purple hands at 10:10. Purple is Liquid Clock's colour, as amber is Metronome's and teal is Clear Tracker's.
 - Full icon set: Home Screen (192, 512), a maskable icon for Android, an Apple touch icon and a favicon. Made by `design/make-icons.py` from `design/liquid-icon.svg`.

@@ -1,0 +1,8 @@
+{
+  "name": "liquid-clock-checks",
+  "private": true,
+  "description": "Tools for the browser checks. Run `npm install` here once, then `python3 checks/check.py` from the repo root.",
+  "devDependencies": {
+    "axe-core": "4.10.2"
+  }
+}
