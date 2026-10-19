@@ -2,7 +2,7 @@
 // Network first (so updates show up straight away when online), falling back
 // to the saved copy when offline or when the network takes more than 3 seconds.
 // Bump CACHE with each release so old copies are cleared.
-const CACHE = 'liquid-clock-1.6.0';
+const CACHE = 'liquid-clock-1.6.1';
 const ASSETS = [
     './',
     'manifest.json',
@@ -17,6 +17,7 @@ const ASSETS = [
     'fonts/inter-latin-600-normal.woff2',
     'fonts/jetbrains-mono-latin-500-normal.woff2',
     'fonts/caveat-latin-600-normal.woff2',
+    'fonts/OFL.txt',
 ];
 
 self.addEventListener('install', (e) => {

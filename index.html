@@ -151,11 +151,13 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <h3>Credits</h3>
 <p>Open source under the MIT licence. The code is on <a href="https://github.com/Hubert-BitScribbles/Liquid-Clock" target="_blank" rel="noopener">GitHub</a>.</p>
-<p>Fonts: Space Grotesk, Inter, JetBrains Mono and Caveat, under the SIL Open Font License.</p>
+<p>Fonts: Space Grotesk, Inter, JetBrains Mono and Caveat, under the SIL Open Font License (<a href="fonts/OFL.txt" target="_blank" rel="noopener">the licence</a>).</p>
+<p>The liquid is domain-warped noise, after <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noopener">Inigo Quilez's article</a> on the technique. There's no other outside code: the rest is written for Liquid Clock.</p>
 <p>© 2026 bitScribbles</p>
 </div></div>
 <script>
 // ---- liquid background (WebGL, domain-warped noise) ----
+// Domain warping after Inigo Quilez, https://iquilezles.org/articles/warp/ (credited in About).
 const bg=document.getElementById('bg'),gl=bg.getContext('webgl');
 const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
 const DERIV=!!gl.getExtension('OES_standard_derivatives');   // for ink outlines; without it the clock stays soft
@@ -258,7 +260,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.6.0';
+const VERSION='1.6.1';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');

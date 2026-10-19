@@ -2,6 +2,9 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.6.1 — 19 October 2026
+- **Credits in full.** About links to the fonts' licence (SIL Open Font License, `fonts/OFL.txt`, now saved for offline use too) and credits Inigo Quilez's article on domain warping, which the liquid background follows. It also says there's no other outside code.
+
 ## 1.6.0 — 9 October 2026
 A review to tighten loose ends, as done for Metronome.
 - Works offline once opened: a service worker keeps the clock, icons and fonts (network first, saved copy after 3 seconds or with no connection).
