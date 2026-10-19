@@ -18,4 +18,6 @@ Plain files, no build step, served as they are from `main` by a Cloudflare Worke
 - Previews in the address: `?t=23:59:30` to fake a time (midnight), `?dawn` for the run-up to the next Paris dawn.
 
 ## Licence
-MIT — see `LICENSE`. The fonts are under the SIL Open Font License.
+MIT — see `LICENSE`. The names "Liquid Clock" and "bitScribbles" and the logos aren't covered by it.
+
+The fonts are under the SIL Open Font License (`fonts/OFL.txt`, linked from About → Credits). The liquid background's domain warping follows Inigo Quilez's article (https://iquilezles.org/articles/warp/), credited in About. There's no other outside code and no sound.
