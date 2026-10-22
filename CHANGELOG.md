@@ -2,6 +2,9 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.6.3 — 21 October 2026
+- Fix: in the settings panel, scrolling down to the lower palettes or choosing Custom could push the tabs and Done off the top of the screen on iPhone, especially sideways. The tabs and Done now stay fixed at the top of the panel and only the content below them scrolls. The panel is also sized to the screen space you can actually see (Safari's toolbars no longer count against it).
+
 ## 1.6.2 — 20 October 2026
 - **bitScribbles™.** About's "Made by bitScribbles" heading carries the ™ sign, now that the trademark search came back clear.
 

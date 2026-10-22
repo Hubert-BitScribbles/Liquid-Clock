@@ -42,15 +42,17 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
  --text:rgba(250,250,249,.92);--mid:rgba(250,250,249,.65);--rule:rgba(250,250,249,.10);
  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--ui:'Space Grotesk',-apple-system,system-ui,sans-serif;--body:'Inter',-apple-system,system-ui,sans-serif;
  position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120%);
- width:min(620px,calc(100% - 24px));max-height:88vh;overflow:auto;box-sizing:border-box;padding:16px 18px 18px;border-radius:20px;
+ width:min(620px,calc(100% - 24px));max-height:88vh;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+ overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;padding:16px 18px 18px;border-radius:20px;
  background:linear-gradient(135deg,rgba(20,23,28,.94),rgba(28,21,53,.94) 55%,rgba(110,86,207,.9) 160%);
  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--rule);box-shadow:0 18px 50px rgba(0,0,0,.45);
  color:var(--text);font:400 15px/1.45 var(--body);transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:3;scrollbar-width:thin}
 #pn{visibility:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s .35s}
 #pn.open{transform:translate(-50%,0);visibility:visible;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
-#pn h2{margin:0 0 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;
+#pn h2{flex:none;margin:0 0 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;
  padding-bottom:10px;border-bottom:1px solid var(--rule)}
 #pn h2 span{display:flex;gap:20px}
+#pbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin-right:-8px;padding-right:8px;scrollbar-width:thin}
 #pn h2 button{background:none;border:0;padding:4px 0;cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
 #pn h2 .tab{border-bottom:2px solid transparent;padding-bottom:6px;margin-bottom:-11px}
 #pn h2 .tab[aria-selected=true]{color:var(--paper);border-bottom-color:var(--teal)}
@@ -103,7 +105,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <button class="tab" role="tab" id="tCol" aria-selected="true">Colours</button>
 <button class="tab" role="tab" id="tAbout" aria-selected="false">About</button></span>
 <button id="pd">Done</button></h2>
-<div id="vCol"><div id="ps"></div><div id="cu"></div>
+<div id="pbody"><div id="vCol"><div id="ps"></div><div id="cu"></div>
 <div id="st"><h3>Style</h3>
 <div class="seg" data-k="ink"><span>Edges</span><div><button data-v="0">Soft</button><button data-v="1">Ink</button></div></div>
 <div class="seg" data-k="hands"><span>Hands</span><div><button data-v="bold">Bold</button><button data-v="fine">Fine</button></div></div>
@@ -154,7 +156,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <p>Fonts: Space Grotesk, Inter, JetBrains Mono and Caveat, under the SIL Open Font License (<a href="fonts/OFL.txt" target="_blank" rel="noopener">the licence</a>).</p>
 <p>The liquid is domain-warped noise, after <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noopener">Inigo Quilez's article</a> on the technique. There's no other outside code: the rest is written for Liquid Clock.</p>
 <p>© 2026 bitScribbles</p>
-</div></div>
+</div></div></div>
 <script>
 // ---- liquid background (WebGL, domain-warped noise) ----
 // Domain warping after Inigo Quilez, https://iquilezles.org/articles/warp/ (credited in About).
@@ -260,12 +262,12 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.6.2';
+const VERSION='1.6.3';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
 let tapAt=-1e9;                                    // a touch at the centre stirs the liquid
-function view(about){pn.classList.toggle('about',about);tCol.setAttribute('aria-selected',!about);tAbout.setAttribute('aria-selected',about);pn.scrollTop=0;}
+function view(about){pn.classList.toggle('about',about);tCol.setAttribute('aria-selected',!about);tAbout.setAttribute('aria-selected',about);document.getElementById('pbody').scrollTop=0;}
 function showDawn(){const n=Date.now()+off,v=dawnNext(n),d=new Date(v),t=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),
  same=new Date(n).toDateString()===d.toDateString();
  document.getElementById('dawn').textContent='The next one is at '+t+(same?' today':' tomorrow')+', your time.';}

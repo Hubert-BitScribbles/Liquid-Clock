@@ -85,6 +85,15 @@ with sync_playwright() as p:
     ok(gap(D, 2) == 100, 'battery: 10 fps under full white')
     ok(pg.evaluate("frameGap({white:0,sun:0,black:0,mid:0},200)") == 0, 'battery: full speed just after a touch')
 
+    # the panel's tabs and Done stay on screen on a short, sideways phone, even after scrolling to Custom
+    ls = b.new_context(viewport={"width": 844, "height": 350}, has_touch=True, is_mobile=True).new_page()
+    ls.goto(URL); ls.wait_for_timeout(800); ls.touchscreen.tap(422, 175); ls.wait_for_timeout(600)
+    ls.evaluate("document.querySelector('.pc[data-id=custom]').scrollIntoView({block:'center'})"); ls.wait_for_timeout(200)
+    bb = ls.query_selector('.pc[data-id=custom]').bounding_box(); ls.touchscreen.tap(bb['x']+bb['width']/2, bb['y']+bb['height']/2); ls.wait_for_timeout(400)
+    ls.evaluate("document.getElementById('pbody').scrollTop=9999"); ls.wait_for_timeout(200)
+    d = ls.evaluate("(()=>{const r=document.getElementById('pd').getBoundingClientRect();return [r.top,r.bottom,innerHeight]})()")
+    ok(d[0] >= 0 and d[1] <= d[2], f'panel: Done stays on screen sideways after scrolling to Custom (top {d[0]:.0f})')
+
     # reduce motion: a calmer clock
     rm = b.new_context(viewport={"width": 844, "height": 390}, reduced_motion='reduce').new_page()
     rm.goto(URL + "?t=23:59:00"); rm.wait_for_timeout(800)
