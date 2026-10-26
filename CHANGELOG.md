@@ -2,6 +2,9 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.6.4 — 26 October 2026
+- **bitScribbles Studio Ltd.** Liquid Clock now belongs to bitScribbles Studio Ltd., incorporated in British Columbia on 26 October 2026 (BC1613702). The LICENSE names the company, About's copyright line reads "© 2026 bitScribbles Studio Ltd.", and "Made by bitScribbles™" now links to bitscribbles.com.
+
 ## 1.6.3 — 21 October 2026
 - Fix: in the settings panel, scrolling down to the lower palettes or choosing Custom could push the tabs and Done off the top of the screen on iPhone, especially sideways. The tabs and Done now stay fixed at the top of the panel and only the content below them scrolls. The panel is also sized to the screen space you can actually see (Safari's toolbars no longer count against it).
 
