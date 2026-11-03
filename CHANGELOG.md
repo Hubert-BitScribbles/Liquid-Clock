@@ -2,6 +2,9 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.6.5 — 3 November 2026
+- About: "Buy me a coffee" is replaced by **Contribute**, which opens the Contribute section of the `<upNext/>` page on bitscribbles.com (`upnext.html#contribute`). A line above it says the clock is free, with no ads and no paid version, and that contributing helps fund what bitScribbles makes next. Nothing loads from elsewhere unless it's tapped.
+
 ## 1.6.4 — 26 October 2026
 - **bitScribbles Studio Ltd.** Liquid Clock now belongs to bitScribbles Studio Ltd., incorporated in British Columbia on 26 October 2026 (BC1613702). The LICENSE names the company, About's copyright line reads "© 2026 bitScribbles Studio Ltd.", and "Made by bitScribbles™" now links to bitscribbles.com.
 
