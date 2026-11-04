@@ -51,8 +51,8 @@ with sync_playwright() as p:
     pg.click('#tAbout'); pg.wait_for_timeout(300); audit(pg, 'About')
     ok('final duel' in pg.inner_text('#vAbout') and 'final act' not in pg.inner_text('#vAbout'), 'About tells the origin right')
     ok(pg.inner_text('#ver') == pg.evaluate("VERSION"), 'About shows the version')
-    ok(pg.evaluate("[...document.querySelectorAll('#vAbout a')].some(a=>a.href==='https://bitscribbles.com/upnext.html#contribute'&&a.textContent==='Contribute')")
-       and 'coffee' not in pg.inner_text('#vAbout').lower(), 'About links Contribute to upNext, no coffee link')
+    ok(pg.evaluate("[...document.querySelectorAll('#vAbout a')].some(a=>a.href==='https://bitscribbles.com/takepart.html'&&a.textContent==='Contribute')")
+       and 'coffee' not in pg.inner_text('#vAbout').lower(), 'About links Contribute to Take part, no coffee link')
     pg.keyboard.press('Escape'); pg.wait_for_timeout(500); ok(not open_(), 'Escape closes the panel')
 
     # style choices persist
