@@ -150,7 +150,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <p>Ideas, problems, a palette you'd like to see: write any time.</p>
 <p class="links"><a id="mail" class="primary" href="mailto:support@bitscribbles.com">Send feedback</a></p>
 <p>Liquid Clock is free, with no ads and no paid version. If you'd like to help fund what bitScribbles makes next, you can contribute.</p>
-<p class="links"><a class="secondary" href="https://bitscribbles.com/upnext.html#contribute" target="_blank" rel="noopener">Contribute</a></p>
+<p class="links"><a class="secondary" href="https://bitscribbles.com/takepart.html" target="_blank" rel="noopener">Contribute</a></p>
 
 <h3>Credits</h3>
 <p>Open source under the MIT licence. The code is on <a href="https://github.com/Hubert-BitScribbles/Liquid-Clock" target="_blank" rel="noopener">GitHub</a>.</p>
@@ -263,7 +263,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.6.5';
+const VERSION='1.6.6';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
