@@ -56,10 +56,29 @@ with sync_playwright() as p:
     pg.keyboard.press('Escape'); pg.wait_for_timeout(500); ok(not open_(), 'Escape closes the panel')
 
     # style choices persist
-    pg.evaluate("palId='seine';applyPalette();STYLE.ink='1';STYLE.hands='fine';STYLE.face='marks';applyStyle()")
+    pg.evaluate("palId='seine';applyPalette();STYLE.ink='1';STYLE.hands='fine';STYLE.face='marks';STYLE.depth='deep';applyStyle()")
     pg.reload(); pg.wait_for_timeout(1200)
-    ok(pg.evaluate("palId==='seine'&&STYLE.ink==='1'&&STYLE.hands==='fine'&&STYLE.face==='marks'"), 'palette and style survive a reload')
+    ok(pg.evaluate("palId==='seine'&&STYLE.ink==='1'&&STYLE.hands==='fine'&&STYLE.face==='marks'&&STYLE.depth==='deep'"), 'palette and style (Depth too) survive a reload')
+    pg.click('#hub', force=True); pg.wait_for_timeout(500)
+    ok(pg.evaluate("[...document.querySelectorAll('.seg[data-k=depth] button')].map(b=>b.textContent+':'+b.getAttribute('aria-pressed')).join()") == 'Off:false,Parallax:false,Deep:true',
+       'Style offers Depth: Off, Parallax, Deep')
+    audit(pg, 'Colours with Depth')
+    pg.keyboard.press('Escape'); pg.wait_for_timeout(400)
     pg.screenshot(path=S + "/seine-styled.png")
+
+    # depth: tilt moves the hands and the liquid; with no sensor it drifts on its own; Off holds everything still
+    # (software rendering here is slow, so step the tilt directly rather than waiting on frames)
+    ok(pg.evaluate("tiltAim=[1,-1];tiltAt=performance.now();for(let i=0;i<20;i++)tiltStep(.1);tilt[0]>.9&&tilt[1]<-.9"), 'depth: the picture follows the tilt')
+    a = pg.evaluate("tiltAt=-1e9;mouseAt=-1e9;for(let i=0;i<20;i++)tiltStep(.1);tilt.slice()"); pg.wait_for_timeout(1500)
+    ok(pg.evaluate("t=>{for(let i=0;i<20;i++)tiltStep(.1);return Math.hypot(tilt[0]-t[0],tilt[1]-t[1])}", a) > .05, 'depth: with no tilt sensor it drifts on its own')
+    pg.screenshot(path=S + "/seine-deep.png")
+    pg.evaluate("STYLE.depth='off';applyStyle()"); pg.wait_for_timeout(200)
+    ok(pg.evaluate("gl.getUniform(pr,uPara)===0&&gl.getUniform(pr,uLit)===0"), 'depth: Off turns the shader effects off')
+    dm = b.new_context(viewport={"width": 1280, "height": 800}).new_page()
+    dm.goto(URL); dm.wait_for_timeout(600); dm.evaluate("STYLE.depth='para';applyStyle()")
+    dm.mouse.move(1270, 10); dm.wait_for_timeout(300)
+    ok(dm.evaluate("for(let i=0;i<20;i++)tiltStep(.1);tilt[0]>.8&&tilt[1]>.8"), 'depth: on a computer the mouse stands in for tilt')
+    dm.context.close()
 
     # midnight: black within a moment, calm under it, clear after a minute
     M = "(()=>{const d=new Date();d.setHours(24,0,0,0);return d.getTime()})()"
@@ -72,7 +91,8 @@ with sync_playwright() as p:
     for c in (-300, -180, -60):
         s = at(pg, D, c - 2); ok(s['mid'] > .4, f'dawn: round at {c} s builds')
     s = at(pg, D, 2);  ok(s['white'] > .99 and s['sun'] > .99, 'dawn: white over orange at sunrise')
-    s = at(pg, D, 20); ok(s['white'] == 0 and s['sun'] > .3 and s['mid'] < .05, 'dawn: orange light, calm beneath')
+    s = at(pg, D, 20)    # dawn's own churn: in some time zones Paris dawn falls in the run-up to local midnight (11:51 pm in Vancouver in November)
+    ok(s['white'] == 0 and s['sun'] > .3 and pg.evaluate("dawnState(dawnNext(Date.now()-60e3)+20e3).ev") < .05, 'dawn: orange light, calm beneath')
     s = at(pg, D, 65); ok(s['sun'] == 0, 'dawn: clock back after a minute')
     ok(pg.evaluate("Math.abs(parisSunrise(Date.UTC(2026,5,21))-Date.UTC(2026,5,21,3,47))") < 180e3, 'Paris sunrise on 21 June 2026 within 3 minutes of 05:47 CEST')
 
@@ -100,6 +120,9 @@ with sync_playwright() as p:
     rm = b.new_context(viewport={"width": 844, "height": 390}, reduced_motion='reduce').new_page()
     rm.goto(URL + "?t=23:59:00"); rm.wait_for_timeout(800)
     ok(rm.evaluate("state().mid") < .4, 'reduce motion: midnight build is gentler')
+    rm.evaluate("STYLE.depth='deep';applyStyle();tiltAim=[1,1];tiltAt=performance.now();for(let i=0;i<20;i++)tiltStep(.1)")
+    ok(rm.evaluate("Math.hypot(tilt[0],tilt[1])<.01") and 'reduce motion' in rm.text_content('#dnote'), 'reduce motion: Depth holds still, and says why')
+    rm.context.close()
 
     # offline: the service worker serves the clock with no connection
     pg.goto(URL); pg.wait_for_timeout(1500)

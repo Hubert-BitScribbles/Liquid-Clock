@@ -2,6 +2,16 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.7.0 — 9 November 2026
+- **Depth**, a new Style setting: Off, Parallax or Deep. Off is the default, so nothing changes until it's chosen.
+  - **Parallax:** the hands float above the liquid with a soft shadow. Tilt the phone and the hands, their shadow and the liquid shift against each other. The hands move least, so the time stays easy to read.
+  - **Deep:** Parallax plus lit liquid. The colours become a raised, glossy surface, like thick enamel paint, lit from a light that moves as you tilt.
+  - **iPhone:** choosing Parallax or Deep asks for motion access. If it's refused, or the device has no tilt sensor, the picture drifts slowly on its own. On a computer, the mouse stands in for tilt.
+  - The resting angle settles to however the phone is held, so a phone on a stand sits centred.
+  - With Reduce Motion on, Depth holds still: the shadow and lighting stay, without movement, and a note under the setting says why.
+  - Tilt is read only to move the picture and never leaves the phone. Private by design now says so.
+- About: How it moves describes Depth.
+
 ## 1.6.6 — 4 November 2026
 - About: **Contribute** now opens bitscribbles.com's Take part page (`takepart.html`), where Contribute lives now. The button keeps the site's wording, "Contribute".
 
