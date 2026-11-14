@@ -38,10 +38,10 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 @font-face{font-family:'Inter';font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format('woff2')}
 @font-face{font-family:'JetBrains Mono';font-weight:500;font-display:swap;src:url(fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2')}
 @font-face{font-family:'Caveat';font-weight:600;font-display:swap;src:url(fonts/caveat-latin-600-normal.woff2) format('woff2')}
-#pn{--ink:#14171C;--paper:#FAFAF9;--teal:#16B3A3;--purple:#6E56CF;--purple-text:#A898F5;--amber:#F2B134;
+#pn,#ob{--ink:#14171C;--paper:#FAFAF9;--teal:#16B3A3;--purple:#6E56CF;--purple-text:#A898F5;--amber:#F2B134;
  --text:rgba(250,250,249,.92);--mid:rgba(250,250,249,.65);--rule:rgba(250,250,249,.10);
- --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--ui:'Space Grotesk',-apple-system,system-ui,sans-serif;--body:'Inter',-apple-system,system-ui,sans-serif;
- position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120%);
+ --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--ui:'Space Grotesk',-apple-system,system-ui,sans-serif;--body:'Inter',-apple-system,system-ui,sans-serif}
+#pn{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120%);
  width:min(620px,calc(100% - 24px));max-height:88vh;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
  overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;padding:16px 18px 18px;border-radius:20px;
  background:linear-gradient(135deg,rgba(20,23,28,.94),rgba(28,21,53,.94) 55%,rgba(110,86,207,.9) 160%);
@@ -97,12 +97,80 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #vAbout .links a{display:inline-block;padding:10px 16px;border-radius:999px;text-decoration:none;font:600 13px var(--body)}
 #vAbout .links .primary{background:var(--teal);color:var(--ink)}
 #vAbout .links .secondary{border:1px solid rgba(110,86,207,.7);color:var(--paper)}
-@media (prefers-reduced-motion:reduce){#pn,#pn.open{transition:none}}
+#vAbout .links button{padding:10px 16px;border-radius:999px;font:600 13px var(--body);background:none;cursor:pointer;border:1px solid rgba(110,86,207,.7);color:var(--paper)}
+#pn button:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+/* ---- welcome: two short screens on the first visit ---- */
+#ob{position:fixed;inset:0;z-index:4;display:none;align-items:center;justify-content:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px));
+ background:rgba(10,8,20,.35);color:var(--text);font:400 15px/1.5 var(--body)}
+#ob.open{display:flex}
+#ob .card{width:min(520px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;padding:18px 20px 20px;border-radius:20px;
+ background:linear-gradient(135deg,rgba(20,23,28,.95),rgba(28,21,53,.95) 55%,rgba(110,86,207,.9) 160%);
+ -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--rule);box-shadow:0 18px 50px rgba(0,0,0,.45)}
+#ob .top{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px;font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
+#ob .top button{background:none;border:0;color:var(--mid);font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:14px 4px;margin:-14px -4px}
+#ob h2{margin:0 0 4px;font:700 28px/1.12 var(--ui);letter-spacing:-.01em;color:var(--paper)}
+#ob h2:focus{outline:none}
+#ob .by{display:flex;align-items:baseline;gap:6px;margin:0 0 12px}
+#ob .by .b{font:500 12px var(--mono);color:var(--mid)}#ob .by .bit{font:500 15px var(--mono);color:var(--teal)}#ob .by .scr{font:600 24px/1 'Caveat',cursive;color:var(--paper);margin-left:-3px}
+#ob .lede{margin:0 0 8px;font:700 17px/1.35 var(--ui);color:var(--paper)}
+#ob p{margin:0 0 10px;font-size:15px;max-width:60ch}
+#ob .mid{color:var(--mid);font-size:14px}
+#ob .tip{display:flex;gap:14px;align-items:center;margin:16px 0 4px;padding:12px 14px;border:1px solid var(--rule);border-radius:14px}
+#ob .tip p{margin:0}
+#ob .dot{flex:none;position:relative;width:46px;height:46px;border-radius:50%;border:1px dashed rgba(250,250,249,.35)}
+#ob .dot::before,#ob .dot::after{content:'';position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--teal)}
+#ob .dot::after{background:none;border:2px solid var(--teal);box-sizing:border-box;animation:obping 2.2s ease-out infinite}
+@keyframes obping{from{transform:scale(1);opacity:.9}to{transform:scale(3.4);opacity:0}}
+#ob h3{margin:0 0 6px;font:500 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--purple-text)}
+#ob ol{margin:4px 0 12px;padding-left:22px}#ob li{margin:0 0 8px;max-width:58ch}#ob li::marker{color:var(--teal);font:600 14px var(--body)}
+#ob b{color:var(--paper);font-weight:600}
+#ob .dev{font-size:14px;color:var(--mid)}
+#ob .dev button,#ob .linkb{background:none;border:0;padding:12px 4px;margin:-12px -4px;color:var(--teal);font:600 14px var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+#ob .pick{display:none;flex-wrap:wrap;gap:10px 16px;margin:4px 0 12px}
+#ob .pick.show{display:flex}
+#ob .pick label{display:flex;flex-direction:column;gap:4px;font:400 13px var(--body);color:var(--mid)}
+#ob select{font:400 16px var(--body);color:var(--paper);background:rgba(250,250,249,.06);border:1px solid var(--rule);border-radius:10px;padding:8px 10px;min-height:44px}
+#ob select option{color:#14171C}
+#ob .clip{margin:2px 0 12px}
+#ob .clip figure{display:none;margin:10px 0 0}
+#ob .clip.on figure{display:block}
+#ob video{display:block;width:200px;aspect-ratio:9/16;height:auto;border-radius:16px;border:1px solid var(--rule);background:#EDEAF7}
+#ob figcaption{margin:6px 0 0;font:400 12px var(--body);color:var(--mid)}
+#ob .acts{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:16px}
+#ob .acts button{min-height:44px;padding:10px 18px;border-radius:999px;font:600 14px var(--body);cursor:pointer;border:1px solid rgba(110,86,207,.7);background:none;color:var(--paper)}
+#ob .acts .primary{background:var(--teal);border-color:var(--teal);color:var(--ink)}
+#ob button:focus-visible,#ob select:focus-visible,#ob a:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+#ob [hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){#pn,#pn.open{transition:none}#ob .dot::after{animation:none;opacity:0}}
 </style></head>
 <body><canvas id="bg"></canvas><canvas id="clk"></canvas>
 <div id="glow" aria-hidden="true"></div><div id="flash" aria-hidden="true"></div><div id="void" aria-hidden="true"></div>
 <button id="hub" aria-label="Colours and about"></button>
 <div id="hint" aria-hidden="true">Touch the centre</div>
+<div id="ob" role="dialog" aria-modal="true" aria-labelledby="obT1"><div class="card">
+<section id="ob1">
+<div class="top"><span id="obStep1">1 of 2</span><button type="button" class="obskip">Skip</button></div>
+<h2 id="obT1" tabindex="-1">Liquid Clock</h2>
+<p class="by"><span class="b">by</span><span class="bit">&lt;bit/&gt;</span><span class="scr">Scribbles</span></p>
+<p class="lede">Time, kept in moving colour.</p>
+<p>A clock to leave running: two hands over living liquid, after the giant wall clock glimpsed behind the Marquis in John Wick: Chapter 4.</p>
+<p>The liquid churns around the hands and surges as each minute turns. It saves its biggest moments for midnight and for dawn in Paris.</p>
+<div class="tip"><span class="dot" aria-hidden="true"></span><p><b>Touch the centre of the clock</b> for colours, style and About. Nothing else on the screen is a button.</p></div>
+<div class="acts"><button type="button" class="primary" id="obNext">Next</button></div>
+</section>
+<section id="ob2" hidden>
+<div class="top"><span>2 of 2</span><button type="button" class="obskip">Skip</button></div>
+<h2 id="obT2" tabindex="-1"></h2>
+<p id="obWhy"></p>
+<p class="dev"><span id="obDev"></span> <button type="button" id="obChange" aria-expanded="false">Not right? Change</button></p>
+<div class="pick" id="obPick"><label>Device<select id="obOs"></select></label><label>Browser<select id="obBr"></select></label></div>
+<ol id="obSteps"></ol>
+<div class="clip" id="obClip" hidden><button type="button" class="linkb" id="obPlay" aria-expanded="false"></button>
+<figure><video id="obVid" muted loop playsinline preload="none"></video><figcaption id="obCap"></figcaption></figure></div>
+<p id="obNote" class="mid"></p>
+<div class="acts"><button type="button" id="obBack">Back</button><button type="button" id="obInstall" hidden>Install Liquid Clock</button><button type="button" class="primary" id="obDone">Start the clock</button></div>
+</section>
+</div></div>
 <div id="pn" role="dialog" aria-label="Liquid Clock settings"><h2><span role="tablist">
 <button class="tab" role="tab" id="tCol" aria-selected="true">Colours</button>
 <button class="tab" role="tab" id="tAbout" aria-selected="false">About</button></span>
@@ -136,8 +204,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 </ul>
 
 <h3>Keeping it on display</h3>
-<p><b>iPhone:</b> in Safari, tap Share, then Add to Home Screen, and open the clock from its icon so it runs full screen. Turn the phone sideways on a stand.</p>
-<p><b>Android:</b> in Chrome, open the menu and choose Add to Home screen or Install app.</p>
+<p>Added to your Home Screen or Dock, the clock opens full screen, without the browser's bars. Turn the phone sideways on a stand.</p>
+<p class="links" id="howWrap"><button type="button" id="howTo">How to install</button></p>
 <p>After your first touch the clock asks the screen to stay on. If your phone still dims, set Auto-Lock (iPhone) or Screen timeout (Android) to a longer time while the clock is on display.</p>
 <p>Once it has opened, the clock keeps working without a connection.</p>
 <p>If your phone is set to reduce motion, the liquid stays calmer, the big moments are gentler, and Depth holds still.</p>
@@ -288,7 +356,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.8.0';
+const VERSION='1.9.0';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
@@ -303,7 +371,7 @@ hub.addEventListener('click',()=>pn.classList.contains('open')?closePanel():open
 tCol.addEventListener('click',()=>view(false));tAbout.addEventListener('click',()=>view(true));
 document.getElementById('pd').addEventListener('click',closePanel);
 addEventListener('pointerdown',e=>{if(pn.classList.contains('open')&&!pn.contains(e.target)&&e.target!==hub)closePanel();});
-addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('ob').classList.contains('open'))closePanel();});
 try{document.fonts.load('500 20px "Space Grotesk"')}catch(e){}   // the face numerals draw on a canvas, so fetch the font up front
 applyPalette();
 // ---- style: edges, hands, face ----
@@ -346,8 +414,118 @@ function tiltStep(dt){
  const k=Math.min(1,dt*5);tilt=[tilt[0]+(aim[0]-tilt[0])*k,tilt[1]+(aim[1]-tilt[1])*k];}
 applyStyle();
 addEventListener('pointerdown',()=>{if(STYLE.depth!=='off')askTilt();},{once:true});   // a saved Depth asks again on the first touch
-// the only clue, shown once: a whisper below the hands on the first visit
-if(!store.get('lc.hinted')){setTimeout(()=>{hint.classList.add('on');setTimeout(()=>{hint.classList.remove('on');store.set('lc.hinted','1')},4200)},1800);}
+// ---- welcome: what it is and where the settings are; then, in a browser tab, how to install it ----
+// Device and browser detection follows Clear Tracker's (src/lib/install.ts); install clips per
+// claude/platform/install-clips/README.md: beside the written steps, browser tab only, iPhone only,
+// Safari's for Safari 27+, closed until tapped, fetched whole and played from memory, never cached offline.
+const OS_N={iphone:'iPhone',ipad:'iPad',android:'Android',mac:'Mac',windows:'Windows',linux:'Linux',other:'another device'},
+      BR_N={safari:'Safari',chrome:'Chrome',edge:'Edge',firefox:'Firefox',samsung:'Samsung Internet',other:'another browser'};
+function detectDevice(ua,touchMac){let os='other',br='other';
+ if(/iPhone|iPod/.test(ua))os='iphone';else if(/iPad/.test(ua)||(/Macintosh/.test(ua)&&touchMac))os='ipad';
+ else if(/Android/i.test(ua))os='android';else if(/Macintosh|Mac OS X/.test(ua))os='mac';
+ else if(/Windows/.test(ua))os='windows';else if(/Linux|CrOS/.test(ua))os='linux';
+ if(/EdgiOS|EdgA|Edg\//.test(ua))br='edge';else if(/SamsungBrowser/.test(ua))br='samsung';
+ else if(/FxiOS|Firefox\//.test(ua))br='firefox';else if(/CriOS|Chrome\/|Chromium\//.test(ua))br='chrome';
+ else if(/Safari\//.test(ua)&&/Version\//.test(ua))br='safari';else if(os==='iphone'||os==='ipad')br='safari';
+ return{os,browser:br};}
+function safariMajor(ua){if(detectDevice(ua).browser!=='safari')return null;const m=/Version\/(\d+)/.exec(ua);return m?+m[1]:null;}
+const DEV_A={iphone:'an iPhone',ipad:'an iPad',android:'an Android device',mac:'a Mac',windows:'a Windows computer',linux:'a Linux computer',other:'another device'};
+const detected=()=>detectDevice(navigator.userAgent,navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function device(){try{const d=JSON.parse(store.get('lc.device')||'null');if(d&&d.os in OS_N&&d.browser in BR_N)return d}catch(e){}return detected();}
+const installed=()=>matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone===true;
+let installEvt=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;if(ob.classList.contains('open'))fillInstall();});
+addEventListener('appinstalled',()=>{installEvt=null;if(ob.classList.contains('open'))fillInstall();});
+const SAFARI_MENU_AT_LEFT=27;
+const CLIPS={safari:{src:'clips/install-iphone-safari.mp4',poster:'clips/install-iphone-safari.jpg',secs:26,
+  label:'Video of the steps above, in Safari: tap ≡ at the left of the address bar, then Share, View More and Add to Home Screen, keep Open as Web App on and tap Add.'},
+ chrome:{src:'clips/install-iphone-chrome.mp4',poster:'clips/install-iphone-chrome.jpg',secs:24,
+  label:'Video of the steps above, in Chrome: tap Share in the address bar, then View More, scroll down to Add to Home Screen, keep Open as Web App on and tap Add.'}};
+function installGuide(d,offer,safari){
+ const br=d.browser==='other'?'this browser':BR_N[d.browser],ios=d.os==='iphone'||d.os==='ipad';
+ const open='Open Liquid Clock from your Home Screen.',add='Keep <b>Open as Web App</b> on, then tap <b>Add</b>.';
+ const why='Installed, it opens full screen, without the browser’s bars, and works offline.';
+ if(ios){let steps,clip=null;
+  if(d.os==='iphone'&&d.browser==='safari'&&(safari===null||safari>=SAFARI_MENU_AT_LEFT)){clip='safari';
+   steps=['Tap <b>≡</b> at the left of the address bar, then <b>Share</b>. If Share is already in the toolbar, tap it there.',
+    'Tap <b>View More</b>, then <b>Add to Home Screen</b> (scroll down if you don’t see it).',add,open];}
+  else if(d.os==='iphone'&&d.browser==='chrome'){clip='chrome';
+   steps=['Tap <b>Share</b> in the address bar.','Tap <b>View More</b>, then scroll down to <b>Add to Home Screen</b>, in the second group, below <b>Print</b>.',add,open];}
+  else steps=[d.browser==='safari'?'Tap <b>⋯</b> next to the address bar, then <b>Share</b>. If Share is already in the toolbar, tap it there.'
+     :d.browser==='chrome'?'Tap <b>Share</b> in the address bar.':`Open ${d.browser==='other'?'the browser':BR_N[d.browser]}’s menu and tap <b>Share</b>.`,
+    'Choose <b>Add to Home Screen</b> (scroll down if you don’t see it), keep <b>Open as Web App</b> on if it’s offered, then tap <b>Add</b>.',open];
+  return{head:'Add it to your Home Screen',why,steps,clip,
+   note:`The Home Screen clock keeps its own colours and style, separate from ${br}, so choose them there.`};}
+ if(d.os==='mac'&&d.browser==='safari')return{head:'Add it to your Dock',why,
+  steps:['In the menu bar, choose <b>File → Add to Dock</b> (macOS Sonoma or later), then <b>Add</b>.','Open Liquid Clock from the Dock. For the whole screen, press <b>⌃⌘F</b>.'],
+  note:'The Dock app keeps its own colours and style, separate from Safari.'};
+ if(d.browser==='firefox'&&d.os!=='android'){const k=d.os==='mac'?'⌘':'Ctrl';return{head:'Keep it handy',
+  why:'Firefox can’t install Liquid Clock as an app on a computer, but it runs well in a tab.',
+  steps:[`Bookmark this page (<b>${k}+D</b>).`,d.os==='mac'?'For the whole screen, press <b>⌃⌘F</b>.':'For the whole screen, press <b>F11</b>.',
+   'For an app window that works offline, open this page in Chrome or Edge instead.'],note:''};}
+ const android=d.os==='android';
+ const steps=offer?['Tap <b>Install Liquid Clock</b> below.']:android?[d.browser==='samsung'?'Tap <b>≡</b>, then <b>Add page to → Home screen</b>.'
+   :d.browser==='firefox'?'Tap <b>⋮</b>, then <b>Add to Home screen</b>.':`Tap <b>${d.browser==='edge'?'⋯':'⋮'}</b>, then <b>Install app</b> or <b>Add to Home screen</b>.`,
+   'Open Liquid Clock from your Home Screen.']
+  :d.browser==='edge'?['Open Edge’s menu (<b>⋯</b>) and choose <b>Apps → Install this site as an app</b>.']
+  :d.browser==='chrome'?['Click the install icon at the right of the address bar, or open <b>⋮ → Cast, save and share → Install page as app</b>.']
+  :['Look in your browser’s menu for <b>Install</b> or <b>Add to Home Screen</b>.'];
+ return{head:android?'Add it to your Home Screen':'Install it as an app',why,steps,note:''};}
+
+const ob=document.getElementById('ob'),ob1=document.getElementById('ob1'),ob2=document.getElementById('ob2'),obVid=document.getElementById('obVid');
+let obFrom=null,clipUrl=null,clipKey=null;
+const $o=id=>document.getElementById(id);
+function obShow(n){ob1.hidden=n!==1;ob2.hidden=n!==2;ob.setAttribute('aria-labelledby','obT'+n);
+ if(n===2)fillInstall();setTimeout(()=>$o('obT'+n).focus({preventScroll:true}),30);}
+function openWelcome(screen=1,from=null){obFrom=from;const tab=!installed();
+ $o('obNext').textContent=tab?'Next':'Start the clock';$o('obStep1').textContent=tab?'1 of 2':'';
+ ob.classList.add('open');hint.classList.remove('on');obShow(tab?screen:1);}
+function closeWelcome(){if(!ob.classList.contains('open'))return;ob.classList.remove('open');clipStop();
+ store.set('lc.welcomed','1');store.set('lc.hinted','1');(obFrom||hub).focus({preventScroll:true});obFrom=null;}
+function fillInstall(){const d=device(),g=installGuide(d,!!installEvt,safariMajor(navigator.userAgent));
+ $o('obT2').textContent=g.head;$o('obWhy').textContent=g.why;
+ $o('obDev').textContent=`Looks like you’re using ${DEV_A[d.os]}, in ${BR_N[d.browser]}.`;
+ $o('obSteps').innerHTML=g.steps.map(x=>'<li>'+x+'</li>').join('');
+ $o('obNote').textContent=g.note;$o('obInstall').hidden=!installEvt;
+ $o('obDone').classList.toggle('primary',!installEvt);$o('obInstall').classList.toggle('primary',!!installEvt);
+ if(g.clip!==clipKey)clipStop();clipKey=g.clip;const c=CLIPS[g.clip];$o('obClip').hidden=!c;
+ if(c){$o('obPlay').textContent=`▶ Show me how · ${c.secs} s video`;$o('obCap').textContent=`${BR_N[d.browser]}, step by step · no sound`;
+  obVid.poster=c.poster;obVid.setAttribute('aria-label',c.label);}}
+function clipStop(){obVid.pause();obVid.removeAttribute('src');obVid.load();$o('obClip').classList.remove('on');
+ $o('obPlay').setAttribute('aria-expanded','false');if(clipKey&&CLIPS[clipKey])$o('obPlay').textContent=`▶ Show me how · ${CLIPS[clipKey].secs} s video`;
+ if(clipUrl){URL.revokeObjectURL(clipUrl);clipUrl=null;}}
+$o('obPlay').addEventListener('click',()=>{const c=CLIPS[clipKey];if(!c)return;
+ if($o('obClip').classList.contains('on')){clipStop();return;}
+ $o('obClip').classList.add('on');$o('obPlay').setAttribute('aria-expanded','true');$o('obPlay').textContent='Hide the video';
+ const still=CALM.matches;obVid.controls=still;obVid.autoplay=!still;
+ // fetched whole: iPhone Safari plays streamed video only if the server's byte ranges are just so
+ fetch(c.src).then(r=>r.ok?r.blob():Promise.reject(r.status)).then(b=>{if(!$o('obClip').classList.contains('on'))return;
+   clipUrl=URL.createObjectURL(b);obVid.src=clipUrl;if(!still)obVid.play().catch(()=>{});})
+  .catch(()=>{$o('obCap').textContent='The video needs an internet connection. The steps above say the same.';});});
+// "Not right? Change"
+const obOs=$o('obOs'),obBr=$o('obBr');
+obOs.innerHTML=Object.keys(OS_N).map(k=>`<option value="${k}">${k==='other'?'Another device':OS_N[k]}</option>`).join('');
+obBr.innerHTML=Object.keys(BR_N).map(k=>`<option value="${k}">${k==='other'?'Another browser':BR_N[k]}</option>`).join('');
+$o('obChange').addEventListener('click',()=>{const on=!$o('obPick').classList.contains('show'),d=device();
+ $o('obPick').classList.toggle('show',on);$o('obChange').setAttribute('aria-expanded',on);obOs.value=d.os;obBr.value=d.browser;});
+function pickDevice(){const d={os:obOs.value,browser:obBr.value},a=detected();
+ if(d.os===a.os&&d.browser===a.browser)try{localStorage.removeItem('lc.device')}catch(e){}else store.set('lc.device',JSON.stringify(d));fillInstall();}
+obOs.addEventListener('change',pickDevice);obBr.addEventListener('change',pickDevice);
+$o('obNext').addEventListener('click',()=>installed()?closeWelcome():obShow(2));
+$o('obBack').addEventListener('click',()=>{clipStop();obShow(1);});
+$o('obDone').addEventListener('click',closeWelcome);
+ob.querySelectorAll('.obskip').forEach(b=>b.addEventListener('click',closeWelcome));
+$o('obInstall').addEventListener('click',async()=>{if(!installEvt)return;const e=installEvt;installEvt=null;
+ try{await e.prompt();await e.userChoice}catch(x){}fillInstall();});
+ob.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();closeWelcome();return;}
+ if(e.key!=='Tab')return;const f=[...ob.querySelectorAll('button,select,video[controls]')].filter(x=>x.offsetParent&&!x.closest('[hidden]'));
+ if(!f.length)return;const a=f[0],z=f[f.length-1];
+ if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}});
+// About → How to install (browser tabs only)
+$o('howWrap').hidden=installed();
+$o('howTo').addEventListener('click',()=>{closePanel();openWelcome(2,hub);});
+// first visit: the welcome; anyone who has already been here (they've seen the old hint) isn't shown it
+if(!store.get('lc.welcomed')&&!store.get('lc.hinted'))setTimeout(()=>openWelcome(1),600);
 
 // ---- analog clock overlay ----
 const ck=document.getElementById('clk'),cx=ck.getContext('2d');

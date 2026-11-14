@@ -2,6 +2,15 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.9.0 — 14 November 2026
+- **Welcome**, on the first visit only: two short screens, in the settings panel's look.
+  - **1 of 2:** what Liquid Clock is, and that touching the centre of the clock opens colours, style and About. It replaces the one-time "Touch the centre" whisper.
+  - **2 of 2**, in a browser tab only: how to add it to the Home Screen or Dock, with steps for the device and browser detected, as in Clear Tracker. iPhone Safari 27+ gets ≡ → Share → View More → Add to Home Screen; Safari 26 and earlier get ⋯; Chrome on iPhone, Share in the address bar; plus iPad, Android, Mac Safari (Add to Dock), Chrome and Edge on computers (with an Install button where the browser offers one), and Firefox. "Not right? Change" corrects the guess, remembered on that device.
+  - **Show me how:** on iPhone, a short video of the steps beside the written ones (Safari 27+ and Chrome), closed until tapped. It plays muted, looping and inline, is fetched whole and played from memory, and is never kept offline. With reduced motion, it starts still, with play controls.
+  - Installed, the welcome is just screen 1. People who've already used the clock don't see it.
+- About: Keeping it on display has a **How to install** button that opens the install screen, in place of the old one-line iPhone and Android steps.
+- New files: `clips/install-iphone-safari.mp4` and `clips/install-iphone-chrome.mp4`, about 0.5 MB each, with a still each. The service worker leaves `clips/` alone.
+
 ## 1.8.0 — 13 November 2026
 - **Seconds**, a new Style setting: Off or On. Off is the default.
   - On adds a thin second hand in the palette's highlight colour, with a small counterweight behind the centre. It sweeps smoothly rather than ticking, and ripples a little like the other hands.
