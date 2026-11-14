@@ -112,6 +112,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <div class="seg" data-k="ink"><span>Edges</span><div><button data-v="0">Soft</button><button data-v="1">Ink</button></div></div>
 <div class="seg" data-k="hands"><span>Hands</span><div><button data-v="bold">Bold</button><button data-v="fine">Fine</button></div></div>
 <div class="seg" data-k="face"><span>Face</span><div><button data-v="plain">Plain</button><button data-v="marks">Markings</button></div></div>
+<div class="seg" data-k="secs"><span>Seconds</span><div><button data-v="off">Off</button><button data-v="on">On</button></div></div>
 <div class="seg" data-k="depth"><span>Depth</span><div><button data-v="off">Off</button><button data-v="para">Parallax</button><button data-v="deep">Deep</button></div></div>
 <p id="dnote" class="note"></p>
 </div></div>
@@ -129,6 +130,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <li>In the last ten seconds of every minute it builds, peaks as the minute turns, then settles.</li>
 <li>Midnight is different. For ten minutes before, the swirl spreads across the whole screen. At 12:00 it cuts to black, and the clock slowly finds its way back over the next minute.</li>
 <li>Dawn in Paris is different again, wherever you are. The liquid builds three times, each one cut short, then the screen burns white as the sun comes up, gives way to a long wash of orange morning light, and the clock slowly finds its way back over the next minute. <span id="dawn"></span></li>
+<li>Seconds, under Style, adds a thin second hand in the palette's highlight colour. It sweeps smoothly and leaves a faint wake in the liquid.</li>
 <li>Depth, under Style, lifts the hands off the liquid. Tilt the phone and they shift over it with their shadow. Deep also turns the colours into a raised, glossy surface that catches the light as you tilt. On a computer, move the mouse instead.</li>
 <li>Touch the centre of the clock to open this screen. Nothing else is a button.</li>
 </ul>
@@ -170,7 +172,7 @@ const bg=document.getElementById('bg'),gl=bg.getContext('webgl');
 const CALM=matchMedia('(prefers-reduced-motion: reduce)');
 const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
 const DERIV=!!gl.getExtension('OES_standard_derivatives');   // for ink outlines; without it the clock stays soft
-const fs=(DERIV?'#extension GL_OES_standard_derivatives : enable\n#define EDGE(x,th) (1.-smoothstep(.6,1.7,abs((x)-(th))/max(fwidth(x),1e-4)))\n':'#define EDGE(x,th) 0.\n')+`precision highp float;uniform vec2 r;uniform float t,ha,ma,P,pu,mid,Q,fl,ink,para,lit,hw;uniform vec2 tl;
+const fs=(DERIV?'#extension GL_OES_standard_derivatives : enable\n#define EDGE(x,th) (1.-smoothstep(.6,1.7,abs((x)-(th))/max(fwidth(x),1e-4)))\n':'#define EDGE(x,th) 0.\n')+`precision highp float;uniform vec2 r;uniform float t,ha,ma,sa,sec,P,pu,mid,Q,fl,ink,para,lit,hw;uniform vec2 tl;
 uniform vec3 cBase,cW1,cW2,cAcc,cDeep,cHi,cPlum,cPlumD,cS1,cS2,cS3,cInk;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
@@ -184,12 +186,13 @@ void main(){vec2 u0=(gl_FragCoord.xy-.5*r)/min(r.x,r.y)*1.6;
  float R=.672,d=min(seg(uv,ha,R*.62),seg(uv,ma,R*.95));
  vec2 ht=vec2(sin(ha),cos(ha))*R*.62,mt=vec2(sin(ma),cos(ma))*R*.95;
  float tip=exp(-min(length(uv-ht),length(uv-mt))*4.);   // hotspots at the hand tips
+ float dsc=seg(uv,sa,R*.98),wake=sec*exp(-dsc*9.);          // seconds: a faint wake follows the second hand
  vec2 so=u0-hp-vec2(.02,-.03)-tl*.05;                     // the hands' shadow on the liquid, offset by the tilt
- float ds=min(seg(so,ha,R*.62)-.008*hw,seg(so,ma,R*.95));
+ float ds=min(min(seg(so,ha,R*.62)-.008*hw,seg(so,ma,R*.95)),mix(9.,seg(so,sa,R*.98)+.012,sec));
  float shade=para*smoothstep(.022+.03*hw,.004,ds)*.28;
  uv=u0+tl*.1*para;
  float inf=max(exp(-d*3.2),mid*.9);                     // wide zone around the hands; big events flood the whole screen
- float amp=exp(-d*3.2)*(.35+.55*pu);                         // ripples stay near the hands; spread across the screen they fold into a grid
+ float amp=exp(-d*3.2)*(.35+.55*pu)+wake*.1;                         // ripples stay near the hands; spread across the screen they fold into a grid
  uv+=amp*vec2(sin(P+uv.y*5.),cos(P+uv.x*5.));
  uv+=amp*.22*vec2(sin(2.*P+uv.x*9.+1.),cos(2.*P-uv.y*9.));
  uv+=mid*1.1*(vec2(fbm(uv*1.1+vec2(Q,0.)),fbm(uv*1.1+vec2(-Q,5.)))-.5); // big events churn through the noise itself: organic, no grid
@@ -262,7 +265,7 @@ function applyPalette(){
  set('cHi',hex(p.highlight));const wisp=p.wisp?hex(p.wisp):dark?mixc(H,hex(p.accent),.6):H;set('cPlum',wisp);set('cPlumD',p.wisp||dark?mixc(wisp,B,.35):H.map(x=>x*.64));
  set('cS1',hex(p.s1));set('cS2',hex(p.s2));set('cS3',hex(p.s3));
  set('cInk',p.ink?hex(p.ink):dark?mixc(hex(p.accent),[1,1,1],.25):deep.map(x=>x*.7));
- PAL={hands:p.hands,core:toHex(core)};
+ PAL={hands:p.hands,core:toHex(core),sec:toHex(dark?mixc(hex(p.highlight),[1,1,1],.15):hex(p.highlight).map(x=>x*.85))};
  document.getElementById('clk').style.mixBlendMode=dark?'screen':'multiply';
  document.getElementById('hint').classList.toggle('dark',dark);
  document.querySelector('meta[name=theme-color]')?.setAttribute('content',p.base);
@@ -285,7 +288,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.7.0';
+const VERSION='1.8.0';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
@@ -304,11 +307,11 @@ addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
 try{document.fonts.load('500 20px "Space Grotesk"')}catch(e){}   // the face numerals draw on a canvas, so fetch the font up front
 applyPalette();
 // ---- style: edges, hands, face ----
-let STYLE={ink:'0',hands:'bold',face:'plain',depth:'off'};try{Object.assign(STYLE,JSON.parse(store.get('lc.style')||'{}'))}catch(e){}
+let STYLE={ink:'0',hands:'bold',face:'plain',secs:'off',depth:'off'};try{Object.assign(STYLE,JSON.parse(store.get('lc.style')||'{}'))}catch(e){}
 const uInk=gl.getUniformLocation(pr,'ink'),stEl=document.getElementById('st'),
-      uPara=gl.getUniformLocation(pr,'para'),uLit=gl.getUniformLocation(pr,'lit'),uHw=gl.getUniformLocation(pr,'hw'),uTl=gl.getUniformLocation(pr,'tl');
+      uPara=gl.getUniformLocation(pr,'para'),uLit=gl.getUniformLocation(pr,'lit'),uHw=gl.getUniformLocation(pr,'hw'),uSec=gl.getUniformLocation(pr,'sec'),uSa=gl.getUniformLocation(pr,'sa'),uTl=gl.getUniformLocation(pr,'tl');
 function applyStyle(){gl.uniform1f(uInk,STYLE.ink==='1'&&DERIV?1:0);
- gl.uniform1f(uPara,STYLE.depth==='off'?0:1);gl.uniform1f(uLit,STYLE.depth==='deep'?1:0);gl.uniform1f(uHw,STYLE.hands==='fine'?0:1);
+ gl.uniform1f(uPara,STYLE.depth==='off'?0:1);gl.uniform1f(uLit,STYLE.depth==='deep'?1:0);gl.uniform1f(uHw,STYLE.hands==='fine'?0:1);gl.uniform1f(uSec,STYLE.secs==='on'?1:0);
  if(STYLE.depth!=='off')listenTilt();depthNote();
  stEl.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',STYLE[g.dataset.k]===b.dataset.v)));
  store.set('lc.style',JSON.stringify(STYLE));}
@@ -395,7 +398,7 @@ function state(){
  const black=x<-.3||x>60?0:x<0?(x+.3)/.3:x<5?1:Math.pow(1-(x-5)/55,1.3);     // at 12:00 everything cuts to black, holds ~5 s, returns by +60 s
  const dw=dawnState(d.getTime());
  const k=CALM.matches?.3:1;                                                  // reduce motion: a third of the churn
- return{ha:h*Math.PI/6,ma:m*Math.PI/30,pu:pu*k,mid:Math.max(midn,dw.ev)*k,fl:dw.fl,white:dw.white||0,sun:dw.sun||0,black};}
+ return{ha:h*Math.PI/6,ma:m*Math.PI/30,sa:sec*Math.PI/30,pu:pu*k,mid:Math.max(midn,dw.ev)*k,fl:dw.fl,white:dw.white||0,sun:dw.sun||0,black};}
 
 function hand(a,len,wd,tail,seed,mo,t){
  cx.save();cx.rotate(a);const N=28,L=[],Rt=[];
@@ -430,7 +433,15 @@ function drawClock(S,t){
  cx.filter=`blur(${R*.003}px)`;cx.globalAlpha=.9;cx.fillStyle=cx.strokeStyle=PAL.core;
  if(fine){hand(S.ha,R*.59,R*.016,R*.08,0,mo,t);hand(S.ma,R*.93,R*.011,R*.1,3,mo,t);cx.beginPath();cx.arc(0,0,R*.02,0,7);cx.fill();}
  else{hand(S.ha,R*.6,R*.06,R*.08,0,mo,t);hand(S.ma,R*.93,R*.04,R*.1,3,mo,t);cx.beginPath();cx.arc(0,0,R*.05,0,7);cx.fill();}
+ if(STYLE.secs==='on')secondHand(S.sa,R,mo,t,fine);
  cx.filter='none';cx.restore();}
+
+function secondHand(a,R,mo,t,fine){                 // a thin sweep in the palette's highlight colour, with a counterweight
+ cx.fillStyle=cx.strokeStyle=PAL.sec;
+ cx.filter=`blur(${R*.006}px)`;cx.globalAlpha=.55;hand(a,R*.98,R*(fine?.016:.022),R*.2,6,mo*.6,t);
+ cx.filter=`blur(${R*.002}px)`;cx.globalAlpha=.95;hand(a,R*.97,R*(fine?.008:.011),R*.19,6,mo*.6,t);
+ cx.beginPath();cx.arc(0,0,R*(fine?.022:.03),0,7);cx.fill();
+ cx.save();cx.rotate(a);cx.beginPath();cx.arc(0,R*.15,R*(fine?.018:.024),0,7);cx.fill();cx.restore();}
 
 // Battery: draw at 30 fps while calm, full speed for the big moments and right after a touch,
 // and only 10 fps while white, orange or black covers the whole screen.
@@ -448,7 +459,7 @@ function frame(ms){
  const t=ms/1000,dt=Math.min(.1,(ms-last)/1000);last=ms;
  Ph=(Ph+dt*(.9+3.3*S.pu)*(1+1.5*S.mid))%(Math.PI*2);Qa+=dt*.35*S.mid;
  gl.uniform2f(uR,bg.width,bg.height);gl.uniform1f(uT,t);gl.uniform1f(uP,Ph);
- gl.uniform1f(uPu,S.pu);gl.uniform1f(uMid,S.mid);gl.uniform1f(uQ,Qa);gl.uniform1f(uFl,S.fl);gl.uniform1f(uHa,S.ha);gl.uniform1f(uMa,S.ma);
+ gl.uniform1f(uPu,S.pu);gl.uniform1f(uMid,S.mid);gl.uniform1f(uQ,Qa);gl.uniform1f(uFl,S.fl);gl.uniform1f(uHa,S.ha);gl.uniform1f(uMa,S.ma);gl.uniform1f(uSa,S.sa);
  tiltStep(dt);gl.uniform2f(uTl,tilt[0],tilt[1]);
  gl.drawArrays(gl.TRIANGLES,0,3);drawClock(S,t);
  flashEl.style.opacity=S.white.toFixed(3);glowEl.style.opacity=S.sun.toFixed(3);voidEl.style.opacity=S.black.toFixed(3);}
