@@ -2,6 +2,13 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.8.0 — 13 November 2026
+- **Seconds**, a new Style setting: Off or On. Off is the default.
+  - On adds a thin second hand in the palette's highlight colour, with a small counterweight behind the centre. It sweeps smoothly rather than ticking, and ripples a little like the other hands.
+  - It leaves a faint wake in the liquid as it goes round, and with Depth on it casts a shadow too.
+  - The hand follows Hands: it's finer with Fine.
+- About: How it moves describes Seconds.
+
 ## 1.7.0 — 9 November 2026
 - **Depth**, a new Style setting: Off, Parallax or Deep. Off is the default, so nothing changes until it's chosen.
   - **Parallax:** the hands float above the liquid with a soft shadow. Tilt the phone and the hands, their shadow and the liquid shift against each other. The hands move least, so the time stays easy to read.

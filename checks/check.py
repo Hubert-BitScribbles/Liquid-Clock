@@ -56,12 +56,13 @@ with sync_playwright() as p:
     pg.keyboard.press('Escape'); pg.wait_for_timeout(500); ok(not open_(), 'Escape closes the panel')
 
     # style choices persist
-    pg.evaluate("palId='seine';applyPalette();STYLE.ink='1';STYLE.hands='fine';STYLE.face='marks';STYLE.depth='deep';applyStyle()")
+    pg.evaluate("palId='seine';applyPalette();STYLE.ink='1';STYLE.hands='fine';STYLE.face='marks';STYLE.secs='on';STYLE.depth='deep';applyStyle()")
     pg.reload(); pg.wait_for_timeout(1200)
-    ok(pg.evaluate("palId==='seine'&&STYLE.ink==='1'&&STYLE.hands==='fine'&&STYLE.face==='marks'&&STYLE.depth==='deep'"), 'palette and style (Depth too) survive a reload')
+    ok(pg.evaluate("palId==='seine'&&STYLE.ink==='1'&&STYLE.hands==='fine'&&STYLE.face==='marks'&&STYLE.secs==='on'&&STYLE.depth==='deep'"), 'palette and style (Seconds and Depth too) survive a reload')
+    ok(pg.evaluate("(()=>{off=new Date(2026,0,1,10,8,45).getTime()-Date.now();const s=state();return Math.abs(s.sa-1.5*Math.PI)<.01&&gl.getUniform(pr,uSec)===1})()"), 'Seconds: the second hand points at 9 at 45 s')
     pg.click('#hub', force=True); pg.wait_for_timeout(500)
-    ok(pg.evaluate("[...document.querySelectorAll('.seg[data-k=depth] button')].map(b=>b.textContent+':'+b.getAttribute('aria-pressed')).join()") == 'Off:false,Parallax:false,Deep:true',
-       'Style offers Depth: Off, Parallax, Deep')
+    ok(pg.evaluate("[...document.querySelectorAll('.seg[data-k=depth] button')].map(b=>b.textContent+':'+b.getAttribute('aria-pressed')).join()") == 'Off:false,Parallax:false,Deep:true' and pg.evaluate("[...document.querySelectorAll('.seg[data-k=secs] button')].map(b=>b.textContent+':'+b.getAttribute('aria-pressed')).join()") == 'Off:false,On:true',
+       'Style offers Seconds (Off, On) and Depth (Off, Parallax, Deep)')
     audit(pg, 'Colours with Depth')
     pg.keyboard.press('Escape'); pg.wait_for_timeout(400)
     pg.screenshot(path=S + "/seine-styled.png")
