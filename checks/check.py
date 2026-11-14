@@ -15,13 +15,16 @@ threading.Thread(target=srv.serve_forever, daemon=True).start()
 URL = f"http://localhost:{PORT}/"
 axe = open(os.path.join(ROOT, "checks", "node_modules", "axe-core", "axe.min.js")).read()
 INIT = "window.__wake=0;Object.defineProperty(navigator,'wakeLock',{value:{request:async()=>{window.__wake++;return new EventTarget();}}});"
+SEEN = "try{localStorage.setItem('lc.welcomed','1')}catch(e){}"   # past the welcome, for checks about the clock itself
+SAFARI27 = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Mobile/15E148 Safari/604.1'
+SAFARI26 = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Mobile/15E148 Safari/604.1'
 fails = []
 def ok(cond, msg):
     print(('PASS ' if cond else 'FAIL ') + msg)
     if not cond: fails.append(msg)
-def audit(pg, tag):
+def audit(pg, tag, el='pn'):
     pg.evaluate(axe)
-    r = pg.evaluate("axe.run(document.getElementById('pn'),{runOnly:['wcag2a','wcag2aa','wcag21aa','wcag22aa','best-practice']}).then(r=>r.violations.map(v=>v.id+' ('+v.nodes.length+'): '+v.nodes.slice(0,3).map(n=>n.target.join(' ')).join(' | ')))")
+    r = pg.evaluate("axe.run(document.getElementById('"+el+"'),{runOnly:['wcag2a','wcag2aa','wcag21aa','wcag22aa','best-practice']}).then(r=>r.violations.map(v=>v.id+' ('+v.nodes.length+'): '+v.nodes.slice(0,3).map(n=>n.target.join(' ')).join(' | ')))")
     ok(not r, f'{tag} axe: {r or "none"}')
 def at(pg, base_js, x):           # move the clock to x seconds from an event and let it settle
     pg.evaluate(f"x=>{{window.__B={base_js};off=window.__B+x-Date.now()}}", int(x*1000)); pg.wait_for_timeout(500)
@@ -31,7 +34,9 @@ def at(pg, base_js, x):           # move the clock to x seconds from an event an
 with sync_playwright() as p:
     b = p.chromium.launch(args=['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist'])
     ctx = b.new_context(viewport={"width": 844, "height": 390}, device_scale_factor=2, has_touch=True, is_mobile=True)
-    ctx.add_init_script(INIT)
+    ctx.add_init_script(INIT); ctx.add_init_script(SEEN)
+    def page(**kw):
+        c = b.new_context(**kw); c.add_init_script(SEEN); return c.new_page()
     pg = ctx.new_page(); errs = []
     pg.on("pageerror", lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(1500)
@@ -75,7 +80,7 @@ with sync_playwright() as p:
     pg.screenshot(path=S + "/seine-deep.png")
     pg.evaluate("STYLE.depth='off';applyStyle()"); pg.wait_for_timeout(200)
     ok(pg.evaluate("gl.getUniform(pr,uPara)===0&&gl.getUniform(pr,uLit)===0"), 'depth: Off turns the shader effects off')
-    dm = b.new_context(viewport={"width": 1280, "height": 800}).new_page()
+    dm = page(viewport={"width": 1280, "height": 800})
     dm.goto(URL); dm.wait_for_timeout(600); dm.evaluate("STYLE.depth='para';applyStyle()")
     dm.mouse.move(1270, 10); dm.wait_for_timeout(300)
     ok(dm.evaluate("for(let i=0;i<20;i++)tiltStep(.1);tilt[0]>.8&&tilt[1]>.8"), 'depth: on a computer the mouse stands in for tilt')
@@ -109,7 +114,7 @@ with sync_playwright() as p:
     ok(pg.evaluate("frameGap({white:0,sun:0,black:0,mid:0},200)") == 0, 'battery: full speed just after a touch')
 
     # the panel's tabs and Done stay on screen on a short, sideways phone, even after scrolling to Custom
-    ls = b.new_context(viewport={"width": 844, "height": 350}, has_touch=True, is_mobile=True).new_page()
+    ls = page(viewport={"width": 844, "height": 350}, has_touch=True, is_mobile=True)
     ls.goto(URL); ls.wait_for_timeout(800); ls.touchscreen.tap(422, 175); ls.wait_for_timeout(600)
     ls.evaluate("document.querySelector('.pc[data-id=custom]').scrollIntoView({block:'center'})"); ls.wait_for_timeout(200)
     bb = ls.query_selector('.pc[data-id=custom]').bounding_box(); ls.touchscreen.tap(bb['x']+bb['width']/2, bb['y']+bb['height']/2); ls.wait_for_timeout(400)
@@ -118,7 +123,7 @@ with sync_playwright() as p:
     ok(d[0] >= 0 and d[1] <= d[2], f'panel: Done stays on screen sideways after scrolling to Custom (top {d[0]:.0f})')
 
     # reduce motion: a calmer clock
-    rm = b.new_context(viewport={"width": 844, "height": 390}, reduced_motion='reduce').new_page()
+    rm = page(viewport={"width": 844, "height": 390}, reduced_motion='reduce')
     rm.goto(URL + "?t=23:59:00"); rm.wait_for_timeout(800)
     ok(rm.evaluate("state().mid") < .4, 'reduce motion: midnight build is gentler')
     rm.evaluate("STYLE.depth='deep';applyStyle();tiltAim=[1,1];tiltAt=performance.now();for(let i=0;i<20;i++)tiltStep(.1)")
@@ -131,6 +136,52 @@ with sync_playwright() as p:
     ctx.set_offline(True); pg.reload(); pg.wait_for_timeout(1500)
     ok(pg.evaluate("typeof VERSION!=='undefined' && document.fonts.check('500 20px \"Space Grotesk\"')"), 'opens offline, fonts included')
     ctx.set_offline(False)
+    pg.evaluate("fetch('clips/install-iphone-safari.jpg').then(r=>r.blob())"); pg.wait_for_timeout(400)
+    ok(pg.evaluate("caches.keys().then(ks=>Promise.all(ks.map(k=>caches.open(k).then(c=>c.keys())))).then(a=>a.flat().every(r=>!r.url.includes('/clips/')))"),
+       'the install clips are never kept offline')
+
+    # welcome: first visit only; what it is and where the settings are; then install steps for the device
+    def iphone(ua=SAFARI27, init=None, **kw):
+        c = b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, has_touch=True, is_mobile=True, user_agent=ua, **kw)
+        if init: c.add_init_script(init)
+        w = c.new_page(); w.on("pageerror", lambda e: errs.append(str(e))); w.goto(URL); w.wait_for_timeout(1400); return w
+    shown = lambda w: w.evaluate("document.getElementById('ob').classList.contains('open')")
+    w = iphone()
+    ok(shown(w) and w.is_visible('#ob1') and not w.is_visible('#ob2'), 'welcome: opens on the first visit, at screen 1')
+    ok(w.evaluate("document.activeElement.id") == 'obT1' and 'Touch the centre' in w.inner_text('#ob1'), 'welcome: focus on its title; says to touch the centre for settings')
+    w.screenshot(path=S + "/welcome-1.png"); audit(w, 'Welcome 1', 'ob')
+    w.click('#obNext'); w.wait_for_timeout(300)
+    steps = w.inner_text('#obSteps')
+    ok(w.is_visible('#ob2') and '≡' in steps and 'View More' in steps and 'Open as Web App' in steps and 'an iPhone, in Safari' in w.inner_text('#obDev'),
+       'welcome: Safari 27 on iPhone gets ≡ → Share → View More → Add')
+    ok(w.is_visible('#obPlay') and '26 s' in w.inner_text('#obPlay') and not w.is_visible('#obVid'), 'welcome: Safari clip offered, closed until tapped')
+    w.click('#obPlay'); w.wait_for_timeout(1200)
+    ok(w.evaluate("obVid.src.startsWith('blob:')&&obVid.muted&&obVid.loop&&obVid.playsInline&&obVid.getAttribute('aria-label').includes('Add to Home Screen')"),
+       'welcome: the clip plays muted, looping, inline, from memory, with the steps as its label')
+    w.screenshot(path=S + "/welcome-2.png"); audit(w, 'Welcome 2 with clip', 'ob')
+    w.click('#obChange'); w.select_option('#obOs', 'android'); w.select_option('#obBr', 'chrome'); w.wait_for_timeout(200)
+    ok('Install app' in w.inner_text('#obSteps') and not w.is_visible('#obClip') and w.evaluate("JSON.parse(localStorage.getItem('lc.device')).os") == 'android',
+       'welcome: Not right? Change switches the steps, hides the clip, and is remembered')
+    w.select_option('#obOs', 'iphone'); w.select_option('#obBr', 'safari'); w.wait_for_timeout(200)
+    ok(w.evaluate("localStorage.getItem('lc.device')") is None, 'welcome: choosing the detected device again goes back to detecting')
+    w.click('#obDone'); w.wait_for_timeout(300)
+    ok(not shown(w) and w.evaluate("localStorage.getItem('lc.welcomed')") == '1' and w.evaluate("document.activeElement.id") == 'hub',
+       'welcome: Start the clock closes it, remembers, and leaves focus on the centre')
+    w.reload(); w.wait_for_timeout(1400); ok(not shown(w), 'welcome: not shown again')
+    w.click('#hub', force=True); w.wait_for_timeout(500); w.click('#tAbout'); w.wait_for_timeout(200); w.click('#howTo'); w.wait_for_timeout(400)
+    ok(shown(w) and w.is_visible('#ob2') and not w.evaluate("document.getElementById('pn').classList.contains('open')"), 'welcome: About → How to install opens the install screen')
+    w.keyboard.press('Escape'); w.wait_for_timeout(200); ok(not shown(w), 'welcome: Escape closes it')
+    w.context.close()
+    w = iphone(SAFARI26); w.click('#obNext'); w.wait_for_timeout(200)
+    ok('⋯' in w.inner_text('#obSteps') and not w.is_visible('#obClip'), 'welcome: Safari 26 gets ⋯ and no clip')
+    w.context.close()
+    w = iphone(init="localStorage.setItem('lc.hinted','1')")
+    ok(not shown(w), 'welcome: not shown to people who were already here')
+    w.context.close()
+    w = iphone(init="Object.defineProperty(navigator,'standalone',{value:true})")
+    ok(shown(w) and w.inner_text('#obNext') == 'Start the clock' and not w.is_visible('#howWrap'), 'welcome: installed, just screen 1, and no How to install')
+    w.click('#obNext'); w.wait_for_timeout(200); ok(not shown(w), 'welcome: installed, Start the clock closes it')
+    w.context.close()
 
     ok(not errs, f'no page errors {errs or ""}')
     b.close()
