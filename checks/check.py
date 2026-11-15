@@ -26,6 +26,8 @@ def audit(pg, tag, el='pn'):
     pg.evaluate(axe)
     r = pg.evaluate("axe.run(document.getElementById('"+el+"'),{runOnly:['wcag2a','wcag2aa','wcag21aa','wcag22aa','best-practice']}).then(r=>r.violations.map(v=>v.id+' ('+v.nodes.length+'): '+v.nodes.slice(0,3).map(n=>n.target.join(' ')).join(' | ')))")
     ok(not r, f'{tag} axe: {r or "none"}')
+def now_at(pg, base_js, x):       # set the time and read the state in one step (bursts make frames slow here)
+    return pg.evaluate(f"x=>{{off=({base_js})+x-Date.now();return state()}}", int(x*1000))
 def at(pg, base_js, x):           # move the clock to x seconds from an event and let it settle
     pg.evaluate(f"x=>{{window.__B={base_js};off=window.__B+x-Date.now()}}", int(x*1000)); pg.wait_for_timeout(500)
     pg.evaluate("x=>{off=window.__B+x-Date.now()}", int(x*1000)); pg.wait_for_timeout(50)
@@ -75,7 +77,7 @@ with sync_playwright() as p:
     # depth: tilt moves the hands and the liquid; with no sensor it drifts on its own; Off holds everything still
     # (software rendering here is slow, so step the tilt directly rather than waiting on frames)
     ok(pg.evaluate("tiltAim=[1,-1];tiltAt=performance.now();for(let i=0;i<20;i++)tiltStep(.1);tilt[0]>.9&&tilt[1]<-.9"), 'depth: the picture follows the tilt')
-    a = pg.evaluate("tiltAt=-1e9;mouseAt=-1e9;for(let i=0;i<20;i++)tiltStep(.1);tilt.slice()"); pg.wait_for_timeout(1500)
+    a = pg.evaluate("tiltAt=-1e9;mouseAt=-1e9;for(let i=0;i<20;i++)tiltStep(.1);tilt.slice()"); pg.wait_for_timeout(4000)   # the drift is slow, and can sit at a turning point
     ok(pg.evaluate("t=>{for(let i=0;i<20;i++)tiltStep(.1);return Math.hypot(tilt[0]-t[0],tilt[1]-t[1])}", a) > .05, 'depth: with no tilt sensor it drifts on its own')
     pg.screenshot(path=S + "/seine-deep.png")
     pg.evaluate("STYLE.depth='off';applyStyle()"); pg.wait_for_timeout(200)
@@ -100,6 +102,22 @@ with sync_playwright() as p:
     s = at(pg, D, 20)    # dawn's own churn: in some time zones Paris dawn falls in the run-up to local midnight (11:51 pm in Vancouver in November)
     ok(s['white'] == 0 and s['sun'] > .3 and pg.evaluate("dawnState(dawnNext(Date.now()-60e3)+20e3).ev") < .05, 'dawn: orange light, calm beneath')
     s = at(pg, D, 65); ok(s['sun'] == 0, 'dawn: clock back after a minute')
+    # bursts: one every hour; ink coming faster into midnight and flooding to black; light at dawn; colour at New Year
+    Hr = "(()=>{const d=new Date();d.setHours(d.getHours()+1,0,0,0);if(d.getHours()===0)d.setHours(1);return d.getTime()})()"
+    s = now_at(pg, Hr, 2); ok(len(s['bs']) == 1 and s['bs'][0]['a'] > .9 and s['busy'], 'hours: one burst at the top of the hour, drawn at full speed')
+    s = now_at(pg, Hr, 10); ok(len(s['bs']) == 0, 'hours: gone within ten seconds')
+    pg.evaluate("STYLE.hours='off'"); s = now_at(pg, Hr, 2); pg.evaluate("STYLE.hours='on'")
+    ok(len(s['bs']) == 0, 'hours: Off means no burst')
+    s = now_at(pg, M, -20); ok(len(s['bs']) >= 1, 'midnight: ink bursts through the last minute')
+    s = now_at(pg, M, 1); ok(len(s['bs']) >= 6 and 0 < s['black'] < 1, 'midnight: the ink floods in as the black arrives')
+    s = now_at(pg, D, -298); ok(len(s['bs']) >= 3 and all(b['col'][0] > .9 for b in s['bs']), 'dawn: a volley of light with the first round')
+    s = now_at(pg, D, .2); ok(any(b['r'] > 1 for b in s['bs']) and s['white'] == 0, 'dawn: one great burst of light, before the white')
+    NY = "new Date(new Date().getFullYear()+1,0,1).getTime()"
+    s = now_at(pg, NY, -4); ok(len(s['bs']) >= 3 and s['blk'] == 0, 'New Year: the last seconds count down in ink')
+    s = now_at(pg, NY, 15); ok(s['blk'] == 1 and s['hide'] == 1 and s['black'] == 0 and len(s['bs']) >= 3, 'New Year: colour breaks through the black')
+    s = now_at(pg, NY, 600); ok(len(s['bs']) == 3 and all(b['a'] < .2 for b in s['bs']) and s['blk'] == 0, 'New Year: faint stains linger into the first hour')
+    s = now_at(pg, NY, 3700); ok(len(s['bs']) == 0, 'New Year: the stains are gone after an hour')
+    s = now_at(pg, M, 3); ok(s['blk'] == 0 and s['black'] == 1, 'an ordinary midnight stays black')
     ok(pg.evaluate("Math.abs(parisSunrise(Date.UTC(2026,5,21))-Date.UTC(2026,5,21,3,47))") < 180e3, 'Paris sunrise on 21 June 2026 within 3 minutes of 05:47 CEST')
 
     # battery: 30 fps while calm, every frame for the big moments, 10 fps under full cover

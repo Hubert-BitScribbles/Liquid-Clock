@@ -2,6 +2,18 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.10.0 — 14 November 2026
+- **Bursts**: anti-fireworks for the clock's big moments. Bursts of ink punch into the liquid, with ragged, spiked edges and flung droplets, and as each fades the swirl smears it into marbling and takes it back. On dark palettes the ink is light.
+  - **Every hour:** one burst at the tip of the hour hand. A new Style setting, **Hours** (Burst or Off), turns it off.
+  - **Midnight:** the ten-minute swirl build stays. Through the last minute, bursts of ink come faster and faster; at 12:00 eight great ones flood the screen, and the black arrives with them (over about a second, rather than a cut). The way back is unchanged.
+  - **Paris dawn:** light instead of ink. Each of the three rounds brings a volley of bursts in sun orange, gold and warm white; at sunrise one great burst of light floods into the warm white, then the orange wash as before.
+  - **New Year's midnight:** the last ten seconds count down in ink, one burst a second, each bigger. After the flood to black, colour breaks through: bursts in the palette's own colours on black for about half a minute, the only time all year they aren't ink or light. Then the clock comes back, and a few faint colour stains linger through the first hour.
+  - With Reduce Motion: fewer, smaller bursts.
+  - Battery: full speed only while a burst is fresh.
+- Previews: `?hour` (5 s before the next hour) and `?newyear` (75 s before the next New Year), alongside `?t=` and `?dawn`.
+- Fix: the hands' shadow under Depth, and the bursts, use edge maths that every GPU handles the same way.
+- About: How it moves describes the bursts.
+
 ## 1.9.0 — 14 November 2026
 - **Welcome**, on the first visit only: two short screens, in the settings panel's look.
   - **1 of 2:** what Liquid Clock is, and that touching the centre of the clock opens colours, style and About. It replaces the one-time "Touch the centre" whisper.
