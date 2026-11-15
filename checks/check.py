@@ -105,7 +105,11 @@ with sync_playwright() as p:
     # bursts: one every hour; ink coming faster into midnight and flooding to black; light at dawn; colour at New Year
     Hr = "(()=>{const d=new Date();d.setHours(d.getHours()+1,0,0,0);if(d.getHours()===0)d.setHours(1);return d.getTime()})()"
     s = now_at(pg, Hr, 2); ok(len(s['bs']) == 1 and s['bs'][0]['a'] > .9 and s['busy'], 'hours: one burst at the top of the hour, drawn at full speed')
-    s = now_at(pg, Hr, 10); ok(len(s['bs']) == 0, 'hours: gone within ten seconds')
+    s = now_at(pg, Hr, 14); ok(len(s['bs']) == 0, 'hours: gone within fourteen seconds')
+    sz = lambda hh: now_at(pg, f"new Date(2026,10,20,{hh},0,0).getTime()", 3)['bs'][0]
+    a1, a23, b23 = sz(1), sz(23), now_at(pg, "new Date(2026,10,21,23,0,0).getTime()", 3)['bs'][0]
+    ok(a1['r'] < .2 and a23['r'] > .5, 'hours: small at 1 am, building to nearly midnight size by 11 pm')
+    ok(abs(a23['x'] - b23['x']) + abs(a23['y'] - b23['y']) > .05, 'hours: lands somewhere different from day to day')
     pg.evaluate("STYLE.hours='off'"); s = now_at(pg, Hr, 2); pg.evaluate("STYLE.hours='on'")
     ok(len(s['bs']) == 0, 'hours: Off means no burst')
     s = now_at(pg, M, -20); ok(len(s['bs']) >= 1, 'midnight: ink bursts through the last minute')
