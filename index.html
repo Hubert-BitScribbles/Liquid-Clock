@@ -13,6 +13,12 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
+/* Text follows the phone's text size (as Clear Tracker 1.5.0): every font size is N x --t, N its size in px at the
+   usual setting. --t is 1/16 of the browser's base size, and on iPhone and iPad 1/17 of the system body size
+   (17px at the usual Larger Text setting), up to twice the usual size. Mac Safari's 13px body is left out by (hover:none). */
+:root{--t:calc(1rem/16)}   /* the settings tabs stop at 130%, as iPhone's own tab bars barely grow */
+@supports (font:-apple-system-body){@media (hover:none){html{font:-apple-system-body}:root{--t:min(calc(1rem/17),2px)}}}
+html{-webkit-text-size-adjust:100%}
 :root{--bg:#000;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html,body{height:100%;margin:0;background:var(--bg);overflow:hidden}
 #clk{mix-blend-mode:multiply}
@@ -27,7 +33,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #flash{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;
  background:radial-gradient(circle at 50% 45%,#fffdf8 0%,#fff6e4 45%,#ffe9c7 100%)}
 #hint{position:fixed;left:50%;bottom:calc(7vh + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:1;pointer-events:none;
- font:500 12px/1 'Didot','Bodoni 72',Georgia,serif;letter-spacing:.32em;text-transform:uppercase;color:rgba(40,28,20,.7);text-shadow:0 0 12px rgba(255,255,255,.6);
+ font:500 calc(12*var(--t))/1 'Didot','Bodoni 72',Georgia,serif;letter-spacing:.32em;text-transform:uppercase;color:rgba(40,28,20,.7);text-shadow:0 0 12px rgba(255,255,255,.6);
  opacity:0;transition:opacity 1.6s;white-space:nowrap}
 #hint.dark{color:rgba(240,226,190,.75);text-shadow:0 0 12px rgba(0,0,0,.6)}
 #hint.on{opacity:1}
@@ -44,100 +50,103 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #pn{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translate(-50%,120%);
  width:min(620px,calc(100% - 24px));max-height:88vh;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
  overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;padding:16px 18px 18px;border-radius:20px;
- background:linear-gradient(135deg,rgba(20,23,28,.94),rgba(28,21,53,.94) 55%,rgba(110,86,207,.9) 160%);
+ background:linear-gradient(135deg,rgba(20,23,28,.97),rgba(28,21,53,.97) 55%,rgba(110,86,207,.97) 160%);
  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--rule);box-shadow:0 18px 50px rgba(0,0,0,.45);
- color:var(--text);font:400 15px/1.45 var(--body);transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:3;scrollbar-width:thin}
+ color:var(--text);font:400 calc(15*var(--t))/1.45 var(--body);transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:3;scrollbar-width:thin}
 #pn{visibility:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s .35s}
 #pn.open{transform:translate(-50%,0);visibility:visible;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 #pn h2{flex:none;margin:0 0 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;
- padding-bottom:10px;border-bottom:1px solid var(--rule)}
-#pn h2 span{display:flex;gap:20px}
+ padding-bottom:0;border-bottom:1px solid var(--rule)}
+#pn h2 span{display:flex;gap:20px;flex-wrap:wrap}
 #pbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin-right:-8px;padding-right:8px;scrollbar-width:thin}
-#pn h2 button{background:none;border:0;padding:4px 0;cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
-#pn h2 .tab{border-bottom:2px solid transparent;padding-bottom:6px;margin-bottom:-11px}
+#pn h2 button{background:none;border:0;padding:4px 0;min-height:44px;min-width:44px;cursor:pointer;font:500 calc(12*min(var(--t),1.3px))/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
+#pn h2 .tab{border-bottom:2px solid transparent;margin-bottom:-1px}
 #pn h2 .tab[aria-selected=true]{color:var(--paper);border-bottom-color:var(--teal)}
-#pn h2 #pd{color:var(--teal);font-weight:500;border-bottom:2px solid transparent;padding-bottom:6px;margin-bottom:-11px}
+#pn h2 #pd{color:var(--teal);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;padding-left:12px}
 #pn button:focus-visible,#pn a:focus-visible,#pn input:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:6px}
-#ps{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:12px}
-.pc{background:none;border:0;color:var(--mid);font:400 12px/1.3 var(--body);cursor:pointer;padding:0;text-align:center}
+#ps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,calc(78*var(--t))),1fr));gap:12px}
+.pc{background:none;border:0;color:var(--mid);font:400 calc(12*var(--t))/1.3 var(--body);cursor:pointer;padding:0;text-align:center}
 .pc i{display:block;aspect-ratio:1;max-height:72px;width:100%;margin-inline:auto;border-radius:14px;margin-bottom:6px;
  outline:2px solid transparent;outline-offset:3px;box-shadow:inset 0 0 0 1px var(--rule)}
 .pc.on{color:var(--paper);font-weight:600}
 .pc.on i{outline-color:var(--teal)}
-#cu{display:none;margin-top:18px;padding-top:14px;border-top:1px solid var(--rule);grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 16px}
-#cu.show{display:grid}
-#cu label{display:flex;align-items:center;justify-content:space-between;gap:8px;font:400 13px var(--body);color:var(--mid)}
-#cu input{width:40px;height:30px;border:0;padding:0;background:none;border-radius:8px;cursor:pointer}
-#st{margin-top:18px;padding-top:14px;border-top:1px solid var(--rule)}
-#st h3{margin:0 0 10px;font:500 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--purple-text)}
-.seg{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;font:400 14px var(--body);color:var(--text)}
-.seg div{display:flex;border:1px solid var(--rule);border-radius:999px;padding:3px;gap:2px}
-.seg button{background:none;border:0;border-radius:999px;padding:7px 14px;min-height:34px;cursor:pointer;font:600 13px var(--body);color:var(--mid)}
+#cu{display:none;margin-top:18px;padding-top:14px;border-top:1px solid var(--rule)}
+#cu fieldset{border:0;margin:0 0 10px;padding:0;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,calc(150*var(--t))),1fr));gap:0 18px}
+#cu legend{padding:0;margin:0 0 2px;font:600 calc(13*var(--t)) var(--body);color:var(--text)}
+#cu.show{display:block}
+#cu label{display:flex;min-height:44px;cursor:pointer;align-items:center;justify-content:space-between;gap:8px;font:400 calc(13*var(--t)) var(--body);color:var(--mid)}
+#cu input{width:44px;height:34px;flex:none;border:0;padding:0;background:none;border-radius:8px;cursor:pointer}
+#st section{margin-top:18px;padding-top:14px;border-top:1px solid var(--rule)}
+#vCol .eb{margin:0 0 10px}
+#st h3,#vCol .eb,#cu h4{margin:0 0 10px;font:500 calc(12*var(--t))/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--purple-text)}
+.seg{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;margin:0 0 10px;font:400 calc(14*var(--t)) var(--body);color:var(--text)}
+.seg div{display:flex;flex-wrap:wrap;border:1px solid var(--rule);border-radius:23px;padding:3px;gap:2px}
+.seg button{background:none;border:0;border-radius:999px;padding:7px 14px;min-height:44px;cursor:pointer;font:600 calc(13*var(--t)) var(--body);color:var(--mid)}
 .seg button[aria-pressed=true]{background:var(--teal);color:var(--ink)}
-#st .note{margin:-2px 0 0;font:400 12px/1.45 var(--body);color:var(--mid);text-align:right}
+#st .note{margin:-2px 0 0;font:400 calc(12*var(--t))/1.45 var(--body);color:var(--mid);text-align:right}
 #st .note:empty{display:none}
 #vAbout{display:none}
 #pn.about #vAbout{display:block}
 #pn.about #vCol{display:none}
-#vAbout .title{margin:2px 0 4px;font:700 30px/1.1 var(--ui);letter-spacing:-.01em;color:var(--paper)}
-#vAbout .by{display:flex;align-items:baseline;gap:6px;margin:0 0 14px}
-#vAbout .by .b{font:500 12px var(--mono);color:var(--mid)}
-#vAbout .by .bit{font:500 15px var(--mono);color:var(--teal)}
-#vAbout .by .scr{font:600 24px/1 'Caveat',cursive;color:var(--paper);margin-left:-3px}
-#vAbout .lede{margin:0 0 6px;font:700 17px/1.35 var(--ui);color:var(--paper)}
-#vAbout .signoff{margin-top:12px;font:600 22px/1.25 'Caveat',cursive;color:var(--paper)}
-#vAbout .ver{font:500 12px var(--mono);letter-spacing:.06em;color:var(--mid)}
-#vAbout h3{margin:22px 0 8px;font:500 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--purple-text)}
+#vAbout .title{margin:2px 0 4px;font:700 calc(30*var(--t))/1.1 var(--ui);letter-spacing:-.01em;color:var(--paper)}
+#vAbout .by{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;margin:0 0 14px}
+#vAbout .by .b{font:500 calc(12*var(--t)) var(--mono);color:var(--mid)}
+#vAbout .by .bit{font:500 calc(15*var(--t)) var(--mono);color:var(--teal)}
+#vAbout .by .scr{font:600 calc(24*var(--t))/1 'Caveat',cursive;color:var(--paper);margin-left:-3px}
+#vAbout .lede{margin:0 0 6px;font:700 calc(17*var(--t))/1.35 var(--ui);color:var(--paper)}
+#vAbout .signoff{margin-top:12px;font:600 calc(22*var(--t))/1.25 'Caveat',cursive;color:var(--paper)}
+#vAbout .ver{font:500 calc(12*var(--t)) var(--mono);letter-spacing:.06em;color:var(--mid)}
+#vAbout h3{margin:22px 0 8px;font:500 calc(12*var(--t))/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--purple-text)}
 #vAbout hr{border:0;border-top:1px solid var(--rule);margin:14px 0 0}
-#vAbout p,#vAbout li{margin:0 0 8px;font-size:14px;line-height:1.55;color:var(--text);max-width:62ch}
+#vAbout p,#vAbout li{margin:0 0 8px;font-size:calc(14*var(--t));line-height:1.55;color:var(--text);max-width:62ch}
 #vAbout ul{margin:0;padding-left:18px}
 #vAbout li::marker{color:var(--teal)}
 #vAbout a{color:var(--teal)}
 #vAbout .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
-#vAbout .links a{display:inline-block;padding:10px 16px;border-radius:999px;text-decoration:none;font:600 13px var(--body)}
+#vAbout .links a{display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box;padding:10px 16px;border-radius:999px;text-decoration:none;font:600 calc(13*var(--t)) var(--body)}
 #vAbout .links .primary{background:var(--teal);color:var(--ink)}
 #vAbout .links .secondary{border:1px solid rgba(110,86,207,.7);color:var(--paper)}
-#vAbout .links button{padding:10px 16px;border-radius:999px;font:600 13px var(--body);background:none;cursor:pointer;border:1px solid rgba(110,86,207,.7);color:var(--paper)}
+#vAbout .links button{min-height:44px;padding:10px 16px;border-radius:999px;font:600 calc(13*var(--t)) var(--body);background:none;cursor:pointer;border:1px solid rgba(110,86,207,.7);color:var(--paper)}
 #pn button:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
 /* ---- welcome: two short screens on the first visit ---- */
 #ob{position:fixed;inset:0;z-index:4;display:none;align-items:center;justify-content:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px));
- background:rgba(10,8,20,.35);color:var(--text);font:400 15px/1.5 var(--body)}
+ background:rgba(10,8,20,.35);color:var(--text);font:400 calc(15*var(--t))/1.5 var(--body)}
 #ob.open{display:flex}
 #ob .card{width:min(520px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;padding:18px 20px 20px;border-radius:20px;
- background:linear-gradient(135deg,rgba(20,23,28,.95),rgba(28,21,53,.95) 55%,rgba(110,86,207,.9) 160%);
+ background:linear-gradient(135deg,rgba(20,23,28,.97),rgba(28,21,53,.97) 55%,rgba(110,86,207,.97) 160%);
  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--rule);box-shadow:0 18px 50px rgba(0,0,0,.45)}
-#ob .top{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px;font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
+#ob .top{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px;font:500 calc(12*var(--t))/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
 #ob .top button{background:none;border:0;color:var(--mid);font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:14px 4px;margin:-14px -4px}
-#ob h2{margin:0 0 4px;font:700 28px/1.12 var(--ui);letter-spacing:-.01em;color:var(--paper)}
+#ob h2{margin:0 0 4px;font:700 calc(28*var(--t))/1.12 var(--ui);letter-spacing:-.01em;color:var(--paper)}
 #ob h2:focus{outline:none}
-#ob .by{display:flex;align-items:baseline;gap:6px;margin:0 0 12px}
-#ob .by .b{font:500 12px var(--mono);color:var(--mid)}#ob .by .bit{font:500 15px var(--mono);color:var(--teal)}#ob .by .scr{font:600 24px/1 'Caveat',cursive;color:var(--paper);margin-left:-3px}
-#ob .lede{margin:0 0 8px;font:700 17px/1.35 var(--ui);color:var(--paper)}
-#ob p{margin:0 0 10px;font-size:15px;max-width:60ch}
-#ob .mid{color:var(--mid);font-size:14px}
+#ob .by{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;margin:0 0 12px}
+#ob .by .b{font:500 calc(12*var(--t)) var(--mono);color:var(--mid)}#ob .by .bit{font:500 calc(15*var(--t)) var(--mono);color:var(--teal)}#ob .by .scr{font:600 calc(24*var(--t))/1 'Caveat',cursive;color:var(--paper);margin-left:-3px}
+#ob .lede{margin:0 0 8px;font:700 calc(17*var(--t))/1.35 var(--ui);color:var(--paper)}
+#ob p{margin:0 0 10px;font-size:calc(15*var(--t));max-width:60ch}
+#ob .mid{color:var(--mid);font-size:calc(14*var(--t))}
 #ob .tip{display:flex;gap:14px;align-items:center;margin:16px 0 4px;padding:12px 14px;border:1px solid var(--rule);border-radius:14px}
 #ob .tip p{margin:0}
 #ob .dot{flex:none;position:relative;width:46px;height:46px;border-radius:50%;border:1px dashed rgba(250,250,249,.35)}
 #ob .dot::before,#ob .dot::after{content:'';position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--teal)}
 #ob .dot::after{background:none;border:2px solid var(--teal);box-sizing:border-box;animation:obping 2.2s ease-out infinite}
 @keyframes obping{from{transform:scale(1);opacity:.9}to{transform:scale(3.4);opacity:0}}
-#ob h3{margin:0 0 6px;font:500 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--purple-text)}
-#ob ol{margin:4px 0 12px;padding-left:22px}#ob li{margin:0 0 8px;max-width:58ch}#ob li::marker{color:var(--teal);font:600 14px var(--body)}
+#ob h3{margin:0 0 6px;font:500 calc(12*var(--t))/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--purple-text)}
+#ob ol{margin:4px 0 12px;padding-left:22px}#ob li{margin:0 0 8px;max-width:58ch}#ob li::marker{color:var(--teal);font:600 calc(14*var(--t)) var(--body)}
 #ob b{color:var(--paper);font-weight:600}
-#ob .dev{font-size:14px;color:var(--mid)}
-#ob .dev button,#ob .linkb{background:none;border:0;padding:12px 4px;margin:-12px -4px;color:var(--teal);font:600 14px var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+#ob .dev{font-size:calc(14*var(--t));color:var(--mid)}
+#ob .dev button,#ob .linkb{background:none;border:0;padding:12px 4px;margin:-12px -4px;color:var(--teal);font:600 calc(14*var(--t)) var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 #ob .pick{display:none;flex-wrap:wrap;gap:10px 16px;margin:4px 0 12px}
 #ob .pick.show{display:flex}
-#ob .pick label{display:flex;flex-direction:column;gap:4px;font:400 13px var(--body);color:var(--mid)}
-#ob select{font:400 16px var(--body);color:var(--paper);background:rgba(250,250,249,.06);border:1px solid var(--rule);border-radius:10px;padding:8px 10px;min-height:44px}
+#ob .pick label{display:flex;flex-direction:column;gap:4px;font:400 calc(13*var(--t)) var(--body);color:var(--mid)}
+#ob select{font:400 calc(16*var(--t)) var(--body);color:var(--paper);background:rgba(250,250,249,.06);border:1px solid var(--rule);border-radius:10px;padding:8px 10px;min-height:44px}
 #ob select option{color:#14171C}
 #ob .clip{margin:2px 0 12px}
 #ob .clip figure{display:none;margin:10px 0 0}
 #ob .clip.on figure{display:block}
 #ob video{display:block;width:200px;aspect-ratio:9/16;height:auto;border-radius:16px;border:1px solid var(--rule);background:#EDEAF7}
-#ob figcaption{margin:6px 0 0;font:400 12px var(--body);color:var(--mid)}
+#ob figcaption{margin:6px 0 0;font:400 calc(12*var(--t)) var(--body);color:var(--mid)}
 #ob .acts{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:16px}
-#ob .acts button{min-height:44px;padding:10px 18px;border-radius:999px;font:600 14px var(--body);cursor:pointer;border:1px solid rgba(110,86,207,.7);background:none;color:var(--paper)}
+#ob .acts button{min-height:44px;padding:10px 18px;border-radius:999px;font:600 calc(14*var(--t)) var(--body);cursor:pointer;border:1px solid rgba(110,86,207,.7);background:none;color:var(--paper)}
 #ob .acts .primary{background:var(--teal);border-color:var(--teal);color:var(--ink)}
 #ob button:focus-visible,#ob select:focus-visible,#ob a:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
 #ob [hidden]{display:none!important}
@@ -145,7 +154,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 </style></head>
 <body><canvas id="bg"></canvas><canvas id="clk"></canvas>
 <div id="glow" aria-hidden="true"></div><div id="flash" aria-hidden="true"></div><div id="void" aria-hidden="true"></div>
-<button id="hub" aria-label="Colours and about"></button>
+<button id="hub" aria-label="Settings and About"></button>
 <div id="hint" aria-hidden="true">Touch the centre</div>
 <div id="ob" role="dialog" aria-modal="true" aria-labelledby="obT1"><div class="card">
 <section id="ob1">
@@ -155,7 +164,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <p class="lede">Time, kept in moving colour.</p>
 <p>A clock to leave running: two hands over living liquid, after the giant wall clock glimpsed behind the Marquis in John Wick: Chapter 4.</p>
 <p>The liquid churns around the hands and surges as each minute turns. It saves its biggest moments for midnight and for dawn in Paris.</p>
-<div class="tip"><span class="dot" aria-hidden="true"></span><p><b>Touch the centre of the clock</b> for colours, style and About. Nothing else on the screen is a button.</p></div>
+<div class="tip"><span class="dot" aria-hidden="true"></span><p><b>Touch the centre of the clock</b> for Settings and About. Nothing else on the screen is a button.</p></div>
 <div class="acts"><button type="button" class="primary" id="obNext">Next</button></div>
 </section>
 <section id="ob2" hidden>
@@ -171,19 +180,25 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <div class="acts"><button type="button" id="obBack">Back</button><button type="button" id="obInstall" hidden>Install Liquid Clock</button><button type="button" class="primary" id="obDone">Start the clock</button></div>
 </section>
 </div></div>
-<div id="pn" role="dialog" aria-label="Liquid Clock settings"><h2><span role="tablist">
-<button class="tab" role="tab" id="tCol" aria-selected="true">Colours</button>
+<div id="pn" role="dialog" aria-label="Liquid Clock settings and About"><h2><span role="tablist">
+<button class="tab" role="tab" id="tCol" aria-selected="true">Settings</button>
 <button class="tab" role="tab" id="tAbout" aria-selected="false">About</button></span>
 <button id="pd">Done</button></h2>
-<div id="pbody"><div id="vCol"><div id="ps"></div><div id="cu"></div>
-<div id="st"><h3>Style</h3>
-<div class="seg" data-k="ink"><span>Edges</span><div><button data-v="0">Soft</button><button data-v="1">Ink</button></div></div>
+<div id="pbody"><div id="vCol"><h3 class="eb" id="hCol">Colours</h3><div id="ps" role="group" aria-labelledby="hCol"></div><div id="cu"></div>
+<div id="st">
+<section aria-labelledby="hClock"><h3 id="hClock">Clock</h3>
 <div class="seg" data-k="hands"><span>Hands</span><div><button data-v="bold">Bold</button><button data-v="fine">Fine</button></div></div>
+<div class="seg" data-k="secs"><span>Second hand</span><div><button data-v="off">Off</button><button data-v="on">On</button></div></div>
 <div class="seg" data-k="face"><span>Face</span><div><button data-v="plain">Plain</button><button data-v="marks">Markings</button></div></div>
-<div class="seg" data-k="hours"><span>Hours</span><div><button data-v="on">Burst</button><button data-v="off">Off</button></div></div>
-<div class="seg" data-k="secs"><span>Seconds</span><div><button data-v="off">Off</button><button data-v="on">On</button></div></div>
+</section>
+<section aria-labelledby="hLiquid"><h3 id="hLiquid">Liquid</h3>
+<div class="seg" data-k="ink"><span>Edges</span><div><button data-v="0">Soft</button><button data-v="1">Ink</button></div></div>
 <div class="seg" data-k="depth"><span>Depth</span><div><button data-v="off">Off</button><button data-v="para">Parallax</button><button data-v="deep">Deep</button></div></div>
 <p id="dnote" class="note"></p>
+</section>
+<section aria-labelledby="hMoments"><h3 id="hMoments">Moments</h3>
+<div class="seg" data-k="hours"><span>Hourly bursts</span><div><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+</section>
 </div></div>
 <div id="vAbout">
 <p class="title">Liquid Clock</p>
@@ -197,12 +212,12 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <ul>
 <li>The liquid churns hardest around the hands, most of all at their tips.</li>
 <li>In the last ten seconds of every minute it builds, peaks as the minute turns, then settles.</li>
-<li>Every hour, a burst of ink punches into the liquid somewhere new, and the swirl slowly takes it back. At 1 am it's small; each hour it grows, building towards midnight. Hours, under Style, turns this off.</li>
+<li>Every hour, a burst of ink punches into the liquid somewhere new, and the swirl slowly takes it back. At 1 am it's small; each hour it grows, building towards midnight. Hourly bursts, under Moments in Settings, turns this off.</li>
 <li>Midnight is different. For ten minutes before, the swirl spreads across the whole screen. Through the last minute, bursts of ink come faster and faster. At 12:00 they flood the screen to black, and the clock slowly finds its way back over the next minute. On New Year's, the last ten seconds count down, and after the black, colour breaks through.</li>
 <li>Dawn in Paris is different again, wherever you are. The liquid builds three times, each with a volley of bursts of light, each one cut short. Then one great burst floods the screen white as the sun comes up, gives way to a long wash of orange morning light, and the clock slowly finds its way back over the next minute. <span id="dawn"></span></li>
-<li>Seconds, under Style, adds a thin second hand in the palette's highlight colour. It sweeps smoothly and leaves a faint wake in the liquid.</li>
-<li>Depth, under Style, lifts the hands off the liquid. Tilt the phone and they shift over it with their shadow. Deep also turns the colours into a raised, glossy surface that catches the light as you tilt. On a computer, move the mouse instead.</li>
-<li>Touch the centre of the clock to open this screen. Nothing else is a button.</li>
+<li>Second hand, under Clock in Settings, adds a thin second hand in the palette's tips colour. It sweeps smoothly and leaves a faint wake in the liquid.</li>
+<li>Depth, under Liquid in Settings, lifts the hands off the liquid. Tilt the phone and they shift over it with their shadow. Deep also turns the colours into a raised, glossy surface that catches the light as you tilt. On a computer, move the mouse instead.</li>
+<li>Touch the centre of the clock to open Settings and About. Nothing else is a button.</li>
 </ul>
 
 <h3>Keeping it on display</h3>
@@ -213,11 +228,11 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <p>If your phone is set to reduce motion, the liquid stays calmer, the big moments are gentler, and Depth holds still.</p>
 
 <h3>Made by bitScribbles™</h3>
-<p>Small apps, carefully made. Every app starts as a scribble. More at <a href="https://bitscribbles.com" target="_blank" rel="noopener">bitscribbles.com</a>.</p>
+<p>Small apps, carefully made. Every one starts as a scribble. More at <a href="https://bitscribbles.com" target="_blank" rel="noopener">bitscribbles.com</a>.</p>
 <p>This one started with the giant wall clock behind the Marquis, glimpsed during the hour-long run across Paris that leads up to the final duel in John Wick: Chapter 4, and the question of whether a phone on a desk could feel like that.</p>
 
 <h3>Private by design</h3>
-<p>No account, no ads, no tracking, and nothing is sent anywhere. Your colours and style choices are remembered in this browser only. With Depth on, the phone's tilt is read to move the picture and never leaves it.</p>
+<p>No account, no ads, no tracking, and nothing is sent anywhere. Your settings are remembered in this browser only. With Depth on, the phone's tilt is read to move the picture and never leaves it.</p>
 
 <h3>Disclaimer</h3>
 <p>Liquid Clock is a fan-made tribute. It isn't affiliated with or endorsed by the makers of the John Wick films. It's provided as is, without warranty. When the time really matters, check another clock too.</p>
@@ -329,7 +344,10 @@ const PRESETS={
  ballerina:{name:'Ballerina',base:'#f3f5f9',c1:'#e0708a',c2:'#f4b7c3',accent:'#ff6a2b',highlight:'#ff3d7f',hands:'#6e2a44',s1:'#8ec5ee',s2:'#e9c46a',s3:'#ff8a3d'},
  seine:{name:'Seine',base:'#3d9fe6',c1:'#f4f7fb',c2:'#d3e6f6',accent:'#d7263d',highlight:'#ff5a4f',hands:'#4a1a24',s1:'#c99a2e',s2:'#eef4f9',s3:'#b81d2c',deep:'#5b1520',ink:'#4a0f19',wisp:'#eef3f9'},
  berlin:{name:'Berlin',base:'#07090f',c1:'#1d6bff',c2:'#00c2d1',accent:'#ff3d3d',highlight:'#c43dff',hands:'#ffb0a0',s1:'#ffd23d',s2:'#ff3d8a',s3:'#7dff5a'}};
-const FIELDS=[['base','Background'],['c1','Colour 1'],['c2','Colour 2'],['accent','Accent'],['highlight','Highlight'],['hands','Hands'],['s1','Spatter 1'],['s2','Spatter 2'],['s3','Spatter 3']];
+// Custom colours, named for what they colour on screen, in three groups
+const FIELDS=[['Liquid',[['base','Background'],['c1','Swirl'],['c2','Swirl blend'],['accent','Blooms']]],
+ ['Details',[['s1','Fleck 1'],['s2','Fleck 2'],['s3','Fleck 3']]],
+ ['Hands',[['hands','Hands'],['highlight','Tips and second hand']]]];
 const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
 const toHex=v=>'#'+v.map(x=>Math.round(Math.max(0,Math.min(1,x))*255).toString(16).padStart(2,'0')).join('');
 const mixc=(a,b,t)=>a.map((x,i)=>x*(1-t)+b[i]*t);
@@ -365,14 +383,14 @@ function renderUI(){
  const p=palId==='custom'?custom:PRESETS[palId];
  cu.classList.toggle('show',palId==='custom');
  if(palId==='custom'&&!cu.dataset.built){cu.dataset.built=1;
-  cu.innerHTML=FIELDS.map(([k,l])=>`<label>${l}<input type="color" data-k="${k}"></label>`).join('');}
+  cu.innerHTML=FIELDS.map(([g,fs])=>`<fieldset><legend>${g}</legend>${fs.map(([k,l])=>`<label>${l}<input type="color" data-k="${k}"></label>`).join('')}</fieldset>`).join('');}
  cu.querySelectorAll('input').forEach(i=>{i.value=p[i.dataset.k]});}
 ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;const id=b.dataset.id;
  if(id==='custom'&&!custom){const src=PRESETS[palId]||PRESETS.marquis;custom={...src,name:'Custom'};delete custom.deep;}
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.10.0';
+const VERSION='1.11.0';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');

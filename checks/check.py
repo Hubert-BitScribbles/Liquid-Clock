@@ -55,6 +55,13 @@ with sync_playwright() as p:
     pg.touchscreen.tap(422, 195); pg.wait_for_timeout(600); ok(open_(), 'a tap at the centre opens the panel')
     audit(pg, 'Colours')
     pg.click('.pc[data-id=custom]'); pg.wait_for_timeout(300); audit(pg, 'Custom colours')
+    # the phone standard (brand guide, 12 November 2026): 44px targets, text that grows, nothing sideways
+    small = pg.evaluate("""[...document.querySelectorAll('#pn button,#pn select,#pn .links a,#cu label')].filter(e=>e.offsetParent)
+       .map(e=>{const r=e.getBoundingClientRect();return [e.id||e.textContent.trim().slice(0,20)||e.dataset.k,Math.round(r.width),Math.round(r.height)]})
+       .filter(([n,w,h])=>h<44||(w<44&&!/^#/.test(n)))""")
+    ok(not small, f'Settings: every control at least 44px to tap {small or ""}')
+    ok(pg.evaluate("[...document.querySelectorAll('#st h3')].map(h=>h.textContent).join()") == 'Clock,Liquid,Moments' and pg.text_content('#tCol') == 'Settings',
+       'Settings: grouped as Colours, Clock, Liquid, Moments')
     pg.click('#tAbout'); pg.wait_for_timeout(300); audit(pg, 'About')
     ok('final duel' in pg.inner_text('#vAbout') and 'final act' not in pg.inner_text('#vAbout'), 'About tells the origin right')
     ok(pg.inner_text('#ver') == pg.evaluate("VERSION"), 'About shows the version')
@@ -161,6 +168,16 @@ with sync_playwright() as p:
     pg.evaluate("fetch('clips/install-iphone-safari.jpg').then(r=>r.blob())"); pg.wait_for_timeout(400)
     ok(pg.evaluate("caches.keys().then(ks=>Promise.all(ks.map(k=>caches.open(k).then(c=>c.keys())))).then(a=>a.flat().every(r=>!r.url.includes('/clips/')))"),
        'the install clips are never kept offline')
+
+    # larger text: at twice the usual size (as iPhone's largest standard Larger Text setting), nothing runs sideways
+    for w_, h_ in [(390, 844), (320, 568)]:
+        lt = page(viewport={"width": w_, "height": h_}, is_mobile=True, has_touch=True)
+        lt.goto(URL); lt.wait_for_timeout(800); lt.evaluate("document.documentElement.style.setProperty('--t','2px');palId='custom';custom={...PRESETS.marquis,name:'Custom'};applyPalette();openPanel()"); lt.wait_for_timeout(500)
+        wide = lt.evaluate("""[...document.querySelectorAll('#pn *')].filter(e=>e.offsetParent&&e.getBoundingClientRect().right>innerWidth+1).map(e=>e.id||e.className||e.tagName).slice(0,5)""")
+        lt.click('#tAbout'); lt.wait_for_timeout(200)
+        wide += lt.evaluate("""[...document.querySelectorAll('#vAbout *')].filter(e=>e.offsetParent&&e.getBoundingClientRect().right>innerWidth+1).map(e=>e.id||e.className||e.tagName).slice(0,5)""")
+        ok(not wide, f'larger text (200%) at {w_}px: nothing runs off the side {wide or ""}')
+        lt.context.close()
 
     # welcome: first visit only; what it is and where the settings are; then install steps for the device
     def iphone(ua=SAFARI27, init=None, **kw):
