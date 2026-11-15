@@ -2,6 +2,25 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.11.0 — 14 November 2026
+- **Settings, regrouped** by what each row changes. The first tab is now **Settings** (was Colours).
+  - **Colours:** the presets and Custom.
+  - **Clock:** Hands, Second hand, Face.
+  - **Liquid:** Edges, Depth.
+  - **Moments:** Hourly bursts (On or Off).
+- **Custom colours, named for what they colour**, in three groups:
+  - **Liquid:** Background, Swirl, Swirl blend, Blooms.
+  - **Details:** Fleck 1–3.
+  - **Hands:** Hands, Tips and second hand.
+  - They were Background, Colour 1, Colour 2, Accent, Highlight, Hands and Spatter 1–3.
+- **Up to the phone standard** (brand guide, 12 November 2026):
+  - every control is at least 44 px to tap (tabs, Done, the Style rows, colour pickers, About's buttons)
+  - text follows the phone's text size (iPhone Larger Text, up to 200%; the browser's own size elsewhere), as in Clear Tracker; the settings tabs stop at 130%
+  - rows, the presets and the pickers wrap, so nothing runs off a 320 px screen at 200%
+  - the panels are a touch less see-through, so the purple labels and teal links keep 4.5:1 even over the brightest liquid.
+- **About:** the studio line follows the brand guide ("Every one starts as a scribble."); How it moves and Private by design say where each setting now lives.
+- **Checks:** 80, with new ones for tap sizes, the grouping and 200% text at 390 and 320 px.
+
 ## 1.10.0 — 14 November 2026
 - **Bursts**: anti-fireworks for the clock's big moments. Bursts of ink punch into the liquid, with ragged, spiked edges and flung droplets, and as each fades the swirl smears it into marbling and takes it back. On dark palettes the ink is light.
   - **Every hour:** one burst, somewhere different each time (and each day). It's small at 1 am and grows every hour, building towards midnight's great bursts; bigger ones linger a little longer. A new Style setting, **Hours** (Burst or Off), turns it off.
