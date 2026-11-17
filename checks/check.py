@@ -104,7 +104,8 @@ with sync_playwright() as p:
     M = "(()=>{const d=new Date();d.setHours(24,0,0,0);return d.getTime()})()"
     s = at(pg, M, -60); ok(s['mid'] > .7 and s['black'] == 0, 'midnight: swirls build before 12:00')
     s = at(pg, M, 3);   ok(s['black'] > .99, 'midnight: black at 12:00')
-    s = at(pg, M, 5);   ok(s['mid'] < .05, 'midnight: churn gone under the black')
+    s = at(pg, M, 5)    # midnight's own churn: in late November, Paris dawn falls just after midnight in Vancouver
+    ok(s['mid'] - pg.evaluate("dawnState(Date.now()+off).ev*(CALM.matches?.3:1)") < .05, 'midnight: churn gone under the black')
     s = at(pg, M, 65);  ok(s['black'] == 0, 'midnight: clock back after a minute')
     # Paris dawn: three rounds, white, orange, calm
     D = "dawnNext(Date.now())"
@@ -120,16 +121,25 @@ with sync_playwright() as p:
     s = now_at(pg, Hr, 14); ok(len(s['bs']) == 0, 'hours: gone within fourteen seconds')
     sz = lambda hh: now_at(pg, f"new Date(2026,10,20,{hh},0,0).getTime()", 3)['bs'][0]
     a1, a23, b23 = sz(1), sz(23), now_at(pg, "new Date(2026,10,21,23,0,0).getTime()", 3)['bs'][0]
-    ok(a1['r'] < .2 and a23['r'] > .5, 'hours: small at 1 am, building to nearly midnight size by 11 pm')
+    ok(a1['r'] < .1 and .25 < a23['r'] < .35, 'hours: small at 1 am, growing every hour, but never more than about a third of the screen')
+    s = now_at(pg, Hr, .5); t = now_at(pg, Hr, 3)
+    ok(len(s['bs']) == 1 and s['bs'][0]['pop'] == 0 and len(t['bs']) == 1 and t['bs'][0]['pop'] == 1 and s['bs'][0]['r'] < t['bs'][0]['r'] / 2,
+       'hours: the drop swells first, then bursts')
     ok(abs(a23['x'] - b23['x']) + abs(a23['y'] - b23['y']) > .05, 'hours: lands somewhere different from day to day')
     pg.evaluate("STYLE.hours='off'"); s = now_at(pg, Hr, 2); pg.evaluate("STYLE.hours='on'")
     ok(len(s['bs']) == 0, 'hours: Off means no burst')
     s = now_at(pg, M, -20); ok(len(s['bs']) >= 1, 'midnight: ink bursts through the last minute')
+    s = now_at(pg, M, -11.5); v = [b for b in s['bs'] if b['pop'] == 1]
+    ok(len({tuple(b['col']) for b in v}) == 3 and all(((p['x']-q['x'])**2 + (p['y']-q['y'])**2) ** .5 < p['r'] + q['r'] for p in v for q in v),
+       'midnight: ink comes in volleys of three shades that overlap')
+    s = now_at(pg, M, -.5); ok(sum(b['pop'] == 0 for b in s['bs']) >= 4, 'midnight: the great drops swell before 12:00')
     s = now_at(pg, M, 1); ok(len(s['bs']) >= 6 and 0 < s['black'] < 1, 'midnight: the ink floods in as the black arrives')
     s = now_at(pg, D, -298); ok(len(s['bs']) >= 3 and all(b['col'][0] > .9 for b in s['bs']), 'dawn: a volley of light with the first round')
     s = now_at(pg, D, .2); ok(any(b['r'] > 1 for b in s['bs']) and s['white'] == 0, 'dawn: one great burst of light, before the white')
     NY = "new Date(new Date().getFullYear()+1,0,1).getTime()"
     s = now_at(pg, NY, -4); ok(len(s['bs']) >= 3 and s['blk'] == 0, 'New Year: the last seconds count down in ink')
+    s = now_at(pg, NY, 14.5); v = [b for b in s['bs'] if b['pop'] == 1 and b['a'] > .9]
+    ok(len({tuple(round(x, 3) for x in b['col']) for b in v}) >= 3, 'New Year: colour comes in volleys of shades')
     s = now_at(pg, NY, 15); ok(s['blk'] == 1 and s['hide'] == 1 and s['black'] == 0 and len(s['bs']) >= 3, 'New Year: colour breaks through the black')
     s = now_at(pg, NY, 600); ok(len(s['bs']) == 3 and all(b['a'] < .2 for b in s['bs']) and s['blk'] == 0, 'New Year: faint stains linger into the first hour')
     s = now_at(pg, NY, 3700); ok(len(s['bs']) == 0, 'New Year: the stains are gone after an hour')

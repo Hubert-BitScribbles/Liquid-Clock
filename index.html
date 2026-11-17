@@ -212,9 +212,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <ul>
 <li>The liquid churns hardest around the hands, most of all at their tips.</li>
 <li>In the last ten seconds of every minute it builds, peaks as the minute turns, then settles.</li>
-<li>Every hour, a burst of ink punches into the liquid somewhere new, and the swirl slowly takes it back. At 1 am it's small; each hour it grows, building towards midnight. Hourly bursts, under Moments in Settings, turns this off.</li>
-<li>Midnight is different. For ten minutes before, the swirl spreads across the whole screen. Through the last minute, bursts of ink come faster and faster. At 12:00 they flood the screen to black, and the clock slowly finds its way back over the next minute. On New Year's, the last ten seconds count down, and after the black, colour breaks through.</li>
-<li>Dawn in Paris is different again, wherever you are. The liquid builds three times, each with a volley of bursts of light, each one cut short. Then one great burst floods the screen white as the sun comes up, gives way to a long wash of orange morning light, and the clock slowly finds its way back over the next minute. <span id="dawn"></span></li>
+<li>Every hour, a drop of ink swells in the liquid somewhere new, wobbling like a bubble, then bursts, and the swirl slowly takes it back. At 1 am it's small; each hour it grows a little, building towards midnight. Hourly bursts, under Moments in Settings, turns this off.</li>
+<li>Midnight is different. For ten minutes before, the swirl spreads across the whole screen. Through the last minute, volleys of ink in three shades come faster and faster. At 12:00 they flood the screen to black, and the clock slowly finds its way back over the next minute. On New Year's, the last ten seconds count down, and after the black, colour breaks through, each volley in shades of one colour.</li>
+<li>Dawn in Paris is different again, wherever you are. The liquid builds three times, each with a volley of bursts of light, each one cut short. Then one great drop of light swells in the middle and bursts, flooding the screen white as the sun comes up, gives way to a long wash of orange morning light, and the clock slowly finds its way back over the next minute. <span id="dawn"></span></li>
 <li>Second hand, under Clock in Settings, adds a thin second hand in the palette's tips colour. It sweeps smoothly and leaves a faint wake in the liquid.</li>
 <li>Depth, under Liquid in Settings, lifts the hands off the liquid. Tilt the phone and they shift over it with their shadow. Deep also turns the colours into a raised, glossy surface that catches the light as you tilt. On a computer, move the mouse instead.</li>
 <li>Touch the centre of the clock to open Settings and About. Nothing else is a button.</li>
@@ -278,6 +278,8 @@ void main(){vec2 u0=(gl_FragCoord.xy-.5*r)/min(r.x,r.y)*1.6;
  float ds=min(min(seg(so,ha,R*.62)-.008*hw,seg(so,ma,R*.95)),mix(9.,seg(so,sa,R*.98)+.012,sec));
  float shade=para*(1.-smoothstep(.004,.022+.03*hw,ds))*.28;
  uv=u0+tl*.1*para;
+ for(int i=0;i<NB;i++){vec4 B=bp[i];float bl=1.-floor(bc[i].w)/99.;if(B.w<.002||bl<.01)continue;  // a swelling drop pushes the liquid aside
+  vec2 dv=uv-B.xy;float dd=max(length(dv),1e-3),r0=min(B.z,.3);uv-=dv/dd*r0*.4*bl*B.w*exp(-max(dd-B.z,0.)*5./r0);}
  float inf=max(exp(-d*3.2),mid*.9);                     // wide zone around the hands; big events flood the whole screen
  float amp=exp(-d*3.2)*(.35+.55*pu)+wake*.1;                         // ripples stay near the hands; spread across the screen they fold into a grid
  uv+=amp*vec2(sin(P+uv.y*5.),cos(P+uv.x*5.));
@@ -316,16 +318,26 @@ void main(){vec2 u0=(gl_FragCoord.xy-.5*r)/min(r.x,r.y)*1.6;
  c*=1.-shade;                                                // shadow of the hands
  c=mix(c,vec3(1.,.9,.72),fl*.45);                            // dawn: warm light on the liquid around the blast
  c*=1.-blk;                                                  // New Year: the liquid held in black while colour breaks through
- // bursts: splatters of ink (or light) punched into the liquid; as they fade, the swirl smears them into marbling
+ // bursts: a drop of ink (or light) swells in the liquid like a bubble, wobbling, then bursts into a splatter;
+ // as it fades, the swirl smears it into marbling. bc.w carries the seed (fraction) and how far it has burst (whole part, 0-99).
  vec2 uL=u0+tl*.1*para;
  for(int i=0;i<NB;i++){vec4 B=bp[i];if(B.w<.002||B.z<.004)continue;vec4 C=bc[i];
-  vec2 pp=uL+(w-.5)*(.12+.9*(1.-B.w))*B.z;vec2 dv=pp-B.xy;float dd=length(dv),an=atan(dv.y,dv.x);
-  float spk=pow(.5+.5*sin(an*7.+C.w*6.)*sin(an*3.-C.w*4.),6.)*.6+pow(.5+.5*sin(an*13.+C.w*9.),14.)*.45;
-  float rr=B.z*(1.+spk)*(.7+.35*n(pp*6./max(B.z,.2)+C.w*13.)+.12*n(pp*21.+C.w*3.));
-  float m=1.-smoothstep(rr*.8,rr,dd);                     // (edges in rising order: reversed is undefined on some GPUs)
-  float drop=smoothstep(.8,.88,n(pp*24./max(B.z,.25)+C.w*7.))*(1.-smoothstep(rr*1.15,rr*1.9,dd))*step(rr*.95,dd); // flung droplets
+  float pop=floor(C.w)/99.,sd=fract(C.w)*10.,bl=1.-pop;
+  vec2 pp=uL+(w-.5)*(.12+.9*(1.-B.w))*B.z*pop;          // held together while it swells; smeared by the swirl once it bursts
+  vec2 dv=pp-B.xy;float dd=length(dv),an=atan(dv.y,dv.x);
+  float wob=(.07*sin(an*3.+sd*6.+t*2.3)+.045*sin(an*5.-sd*4.-t*3.1)+.03*sin(an*2.+sd+t*1.7))*bl; // the drop's skin wobbles
+  float spk=(pow(.5+.5*sin(an*7.+sd*6.)*sin(an*3.-sd*4.),6.)*.6+pow(.5+.5*sin(an*13.+sd*9.),14.)*.45)*pop;
+  float rr=B.z*(1.+spk+wob)*mix(1.,.7+.35*n(pp*6./max(B.z,.2)+sd*13.)+.12*n(pp*21.+sd*3.),pop);
+  float m=1.-smoothstep(rr-mix(.012+rr*.03,rr*.2,pop),rr,dd);        // (edges in rising order: reversed is undefined on some GPUs)
+  float drop=smoothstep(.8,.88,n(pp*24./max(B.z,.25)+sd*7.))*(1.-smoothstep(rr*1.15,rr*1.9,dd))*step(rr*.95,dd)*pop; // flung droplets
   m=max(m,drop);
-  c=mix(c,C.rgb*(.95+.1*n(pp*4.+C.w)),m*B.w);}
+  vec3 bc3=C.rgb*(.95+.1*n(pp*4.+sd));
+  if(bl>0.){                                              // while it swells: a glossy drop, a lit rim and a highlight up and to the left
+   float e=dd/max(rr,1e-3);vec2 hq=dv/max(rr,1e-3)-vec2(-.34,.38);
+   float lum=dot(C.rgb,vec3(.3,.59,.11)),rim=smoothstep(.55,.95,e);
+   bc3=mix(bc3,lum>.5?bc3*.72:mix(bc3,vec3(1.),.3),rim*.55*bl);
+   bc3=mix(bc3,vec3(1.,.98,.95),exp(-dot(hq,hq)*22.)*.7*bl);}
+  c=mix(c,bc3,m*B.w);}
  gl_FragColor=vec4(c,1.);}`;
 function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}
 const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
@@ -390,7 +402,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.11.1';
+const VERSION='1.12.0';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
@@ -616,42 +628,50 @@ function state(){
  return{ha:h*Math.PI/6,ma:m*Math.PI/30,sa:sec*Math.PI/30,pu:pu*k,mid:Math.max(midn,dw.ev)*k,fl:dw.fl,white:dw.white||0,sun:dw.sun||0,
   black:ny?ny.black:black,blk:ny?ny.blk:0,hide:ny?ny.hide:0,bs,busy:bs.some(b=>b.a>.25)};}
 
-// ---- bursts: anti-fireworks, ink punched into the liquid ----
-// every hour, one burst at the hour hand's tip; midnight, ink coming faster through the last minute, then a flood to black;
-// Paris dawn, three volleys of light, then one great burst that floods into white; New Year, a countdown, the flood, then colour.
+// ---- bursts: anti-fireworks, drops of ink that swell in the liquid and burst ----
+// every hour, one drop somewhere new; midnight, volleys of ink coming faster through the last minute, then a flood to black;
+// Paris dawn, three volleys of light, then one great drop that bursts into white; New Year, a countdown, the flood, then colour.
+// Volleys overlap in three shades of their colour.
 function rnd(a){a=Math.sin(a*127.1+311.7)*43758.5453;return a-Math.floor(a);}
-const INK=[.06,.035,.07],INK_DARK=[.96,.93,.88],LIGHT=[[1,.55,.12],[1,.75,.28],[1,.88,.62]],LIGHT_DARK=[[1,.96,.86],[1,.78,.38],[1,.62,.2]];
+const INK=[[.05,.03,.06],[.27,.14,.28],[.08,.11,.28]],INK_DARK=[[.96,.93,.88],[.78,.78,.84],[.92,.8,.64]],
+ LIGHT=[[1,.55,.12],[1,.75,.28],[1,.88,.62]],LIGHT_DARK=[[1,.96,.86],[1,.78,.38],[1,.62,.2]];
+function shades(c){return[mixc(c,[1,1,1],.32),c,mixc(c,[0,0,0],.16)];}
 function ext(){const m=Math.min(innerWidth,innerHeight);return[.8*innerWidth/m,.8*innerHeight/m];}
-// one burst at age a seconds: punches out in about a second, creeps, then fades over its last half
-function burst(a,life,size,x,y,col,seed){if(a<0||a>life)return null;
- const r=size*(1-Math.exp(-a/.22))*(1+.12*a/life),u=Math.min(1,Math.max(0,(a-life*.45)/(life*.55)));
- return{x,y,r,a:1-u*u*(3-2*u),col,seed};}
+// one drop, a seconds after it bursts (negative while it swells): it swells for sw seconds to half its size, wobbling,
+// bursts out to full size in a fraction of a second, creeps, then fades over the last half of its life
+function burst(a,life,size,x,y,col,seed,sw=1){if(a<-sw||a>life)return null;
+ if(a<0){const u=(a+sw)/sw;return{x,y,r:size*.5*Math.pow(u,1.3)+.004,a:Math.min(1,u/.3),col,seed,pop:0};}
+ const r=size*(.5+.5*(1-Math.exp(-a/.15)))*(1+.12*a/life),u=Math.min(1,Math.max(0,(a-life*.45)/(life*.55)));
+ return{x,y,r,a:1-u*u*(3-2*u),col,seed,pop:Math.min(1,a/.12)};}
 function spot(seed,sp=.85){const[ex,ey]=ext();return[(rnd(seed)*2-1)*ex*sp,(rnd(seed+.37)*2-1)*ey*sp];}
+function near([x,y],seed,d){const an=rnd(seed)*6.283,k=d*(.4+.6*rnd(seed+.5));return[x+Math.cos(an)*k,y+Math.sin(an)*k];}
 function bursts(d,x,ny){
  const out=[],calm=CALM.matches,dark=PAL.dark,ink=dark?INK_DARK:INK,light=dark?LIGHT_DARK:LIGHT,sz=calm?.7:1;
  const add=b=>{if(b)out.push(b)};
- // every hour (not midnight, which has its own), unless Hours is off: somewhere different each time,
- // small at 1 am and bigger every hour, building towards midnight's great bursts
+ // every hour (not midnight, which has its own), unless Hours is off: a drop swells from the hour, somewhere different
+ // each time, and bursts; small at 1 am and bigger every hour, building towards midnight
  const hs=d.getMinutes()*60+d.getSeconds()+d.getMilliseconds()/1000,hr=d.getHours();
- if(STYLE.hours!=='off'&&hr!==0&&hs<12){const g=(hr-1)/22,seed=hr+d.getDate()*31+d.getMonth()*400,[px,py]=spot(seed,.7);
-  add(burst(hs,6+4*g,(.13+.5*g)*sz,px,py,ink,seed));}
- // midnight: the last minute, ink coming faster and faster; at 12:00 eight great bursts flood the screen
- if(x>-61&&x<25){const N=calm?7:14;
-  for(let k=0;k<N;k++){const t0=-60*Math.pow(1-k/N,1.6);const[px,py]=spot(k+1);add(burst(x-t0,6,(.22+.18*rnd(k+9))*sz,px,py,ink,k));}
-  if(ny)for(let k=0;k<10;k++){const t0=-10+k;const[px,py]=spot(k+40,.6);add(burst(x-t0,2.6,(.12+.03*k)*sz,px,py,ink,k+40));}   // New Year: a countdown
-  for(let k=0;k<8;k++){const[px,py]=spot(k+20,.7);add(burst(x-k*.12,ny?6:22,(.75+.35*rnd(k+30))*sz,px,py,ink,k+20));}}
- // Paris dawn: three volleys of light, each cut short; at sunrise one great burst floods into white
+ if(STYLE.hours!=='off'&&hr!==0&&hs<14){const g=(hr-1)/22,sw=1.2+.8*g,seed=hr+d.getDate()*31+d.getMonth()*400,[px,py]=spot(seed,.7);
+  add(burst(hs-sw,6+4*g,(.06+.22*g)*sz,px,py,ink[0],seed,sw));}
+ // midnight: through the last minute, volleys of ink coming faster and faster; at 12:00 eight great drops burst and flood the screen
+ if(x>-62&&x<25){const N=calm?4:8,V=calm?2:3;
+  for(let k=0;k<N;k++){const t0=-60*Math.pow(1-k/N,1.6),c=spot(k+1,.7);
+   for(let j=0;j<V;j++){const[px,py]=j?near(c,k*3+j,.2):c;add(burst(x-t0-j*.35,5,(.11+.08*rnd(k*3+j+9))*sz,px,py,ink[j%3],k*3+j,.6));}}
+  if(ny)for(let k=0;k<10;k++){const t0=-10+k,[px,py]=near(spot(40,.4),k+40,.32);add(burst(x-t0,2.6,(.08+.018*k)*sz,px,py,ink[k%3],k+40,.5));}   // New Year: a countdown
+  for(let k=0;k<8;k++){const[px,py]=spot(k+20,.7);add(burst(x-k*.1,ny?6:22,(.5+.25*rnd(k+30))*sz,px,py,ink[k%3],k+20,1));}}
+ // Paris dawn: three volleys of light, each cut short; at sunrise one great drop of light swells and bursts into white
  const dx=(d.getTime()-dawnNear(d.getTime()))/1000;
- if(dx>-310&&dx<10){for(const[c]of ROUNDS)for(let k=0;k<(calm?3:5);k++){const[px,py]=spot(c+k*.7);
-   add(burst(dx-c-k*.5,5,(.28+.2*rnd(c+k))*sz,px,py,light[k%3],c+k));}
-  add(burst(dx+.15,5,1.7,0,0,light[2],7));}
- // New Year: after the black, colour breaks through, then a few stains linger for the first hour
+ if(dx>-311&&dx<10){for(const[c]of ROUNDS){const cc=spot(c,.55);for(let k=0;k<(calm?3:5);k++){const[px,py]=k?near(cc,c+k,.32):cc;
+   add(burst(dx-c-k*.5,5,(.17+.12*rnd(c+k))*sz,px,py,light[k%3],c+k,.5));}}
+  add(burst(dx+.15,5,1.7,0,0,light[2],7,1.8));}
+ // New Year: after the black, colour breaks through in volleys, each in three shades of one of the palette's colours;
+ // then a few stains linger for the first hour
  if(ny){const cols=[PAL.c1,PAL.c2,PAL.acc,PAL.hi,PAL.s1,PAL.s2,PAL.s3].map(c=>mixc(c,[1,1,1],.08));
-  if(x>5&&x<40)for(let k=0;k<(calm?12:26);k++){const t0=6+k*(calm?2:1);const[px,py]=spot(k+60);
-   add(burst(x-t0,5,(.16+.2*rnd(k+70))*sz,px,py,cols[k%cols.length],k+60));}
+  if(x>5&&x<40)for(let k=0;k<(calm?8:14);k++){const t0=6+k*(calm?4:2.4),cc=spot(k+60,.7),sh=shades(cols[k%cols.length]);
+   for(let j=0;j<3;j++){const[px,py]=j?near(cc,k*3+j+60,.22):cc;add(burst(x-t0-j*.3,5,(.1+.1*rnd(k*3+j+70))*sz,px,py,sh[j],k*3+j+60,.5));}}
   if(x>30&&x<3600)for(let k=0;k<3;k++){const[px,py]=spot(k+90,.6),f=(1-(x-30)/3570)*Math.min(1,(x-30)/10);
-   out.push({x:px,y:py,r:(.5+.2*k)*sz,a:.16*f,col:cols[(k*2+1)%cols.length],seed:k+90});}}
- // the newest eight, if more overlap
+   out.push({x:px,y:py,r:(.3+.12*k)*sz,a:.16*f,col:cols[(k*2+1)%cols.length],seed:k+90,pop:1});}}
+ // the eight most visible, if more overlap
  return out.sort((p,q)=>q.a-p.a).slice(0,8);}
 // New Year's midnight (local): the black lifts early, the liquid held dark in the shader so colour can break through it
 function newYear(d,x){if(x<-61||x>3600)return null;const n=new Date(d.getTime()-x*1000);   // the midnight in question
@@ -722,7 +742,7 @@ function frame(ms){
  gl.uniform2f(uR,bg.width,bg.height);gl.uniform1f(uT,t);gl.uniform1f(uP,Ph);
  gl.uniform1f(uPu,S.pu);gl.uniform1f(uMid,S.mid);gl.uniform1f(uQ,Qa);gl.uniform1f(uFl,S.fl);gl.uniform1f(uHa,S.ha);gl.uniform1f(uMa,S.ma);gl.uniform1f(uSa,S.sa);
  const bpv=new Float32Array(32),bcv=new Float32Array(32);
- S.bs.forEach((b,i)=>{bpv.set([b.x,b.y,b.r,b.a],i*4);bcv.set([b.col[0],b.col[1],b.col[2],b.seed*.731%10],i*4);});
+ S.bs.forEach((b,i)=>{bpv.set([b.x,b.y,b.r,b.a],i*4);bcv.set([b.col[0],b.col[1],b.col[2],Math.round(b.pop*99)+((b.seed*.731%10+10)%10)/10.001],i*4);});
  gl.uniform4fv(uBp,bpv);gl.uniform4fv(uBc,bcv);gl.uniform1f(uBlk,S.blk);ck.style.opacity=(1-S.hide).toFixed(3);
  tiltStep(dt);gl.uniform2f(uTl,tilt[0],tilt[1]);
  gl.drawArrays(gl.TRIANGLES,0,3);drawClock(S,t);

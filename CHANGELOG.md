@@ -2,6 +2,14 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.12.0 — 17 November 2026
+- **Bursts, reworked** (Hugh: more like a liquid blob or bubble, and smaller).
+  - Each burst now starts as a **drop** that swells in the liquid, wobbling, glossy, pushing the swirl aside, then bursts into the splatter, which the swirl takes back as before.
+  - **Smaller:** the hourly drop goes from small at 1 am to about a third of the screen by 11 pm (it used to reach more than half). Midnight's run-up, the dawn volleys, the countdown and New Year's colour are all smaller too. The two floods (midnight's ink, dawn's light) still cover the screen.
+  - **Shades and overlap, like Paris dawn:** midnight's last minute comes in volleys of three overlapping drops, in black, aubergine and indigo (on dark palettes, cream, pale grey and bone). The New Year countdown cycles the same shades, each drop landing over the last. New Year's colour comes in volleys of three shades of one palette colour. Dawn's volleys now land together, so they overlap every time.
+  - Midnight's eight great drops swell through the last second and burst at 12:00; at dawn, one great drop of light swells in the middle for nearly two seconds before it bursts into the white.
+- About: How it moves describes the drops.
+
 ## 1.11.1 — 16 November 2026
 - Settings: the selected palette's teal ring is no longer cut off at the edge of the panel (Hugh's iPhone, Seine in the first column). The palette grid has room for the ring on every side.
 - About: "Made by bitScribbles", without the ™ (a remnant from the first apps).
