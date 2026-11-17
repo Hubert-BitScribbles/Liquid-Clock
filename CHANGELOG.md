@@ -2,6 +2,11 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.11.1 — 16 November 2026
+- Settings: the selected palette's teal ring is no longer cut off at the edge of the panel (Hugh's iPhone, Seine in the first column). The palette grid has room for the ring on every side.
+- About: "Made by bitScribbles", without the ™ (a remnant from the first apps).
+- About: the GitHub link points to the code's new home, `bitScribbles/Liquid-Clock`.
+
 ## 1.11.0 — 14 November 2026
 - **Settings, regrouped** by what each row changes. The first tab is now **Settings** (was Colours).
   - **Colours:** the presets and Custom.
