@@ -64,7 +64,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #pn h2 .tab[aria-selected=true]{color:var(--paper);border-bottom-color:var(--teal)}
 #pn h2 #pd{color:var(--teal);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;padding-left:12px}
 #pn button:focus-visible,#pn a:focus-visible,#pn input:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:6px}
-#ps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,calc(78*var(--t))),1fr));gap:12px}
+#ps{padding:5px;margin:-5px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,calc(78*var(--t))),1fr));gap:12px}
 .pc{background:none;border:0;color:var(--mid);font:400 calc(12*var(--t))/1.3 var(--body);cursor:pointer;padding:0;text-align:center}
 .pc i{display:block;aspect-ratio:1;max-height:72px;width:100%;margin-inline:auto;border-radius:14px;margin-bottom:6px;
  outline:2px solid transparent;outline-offset:3px;box-shadow:inset 0 0 0 1px var(--rule)}
@@ -227,7 +227,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <p>Once it has opened, the clock keeps working without a connection.</p>
 <p>If your phone is set to reduce motion, the liquid stays calmer, the big moments are gentler, and Depth holds still.</p>
 
-<h3>Made by bitScribbles™</h3>
+<h3>Made by bitScribbles</h3>
 <p>Small apps, carefully made. Every one starts as a scribble. More at <a href="https://bitscribbles.com" target="_blank" rel="noopener">bitscribbles.com</a>.</p>
 <p>This one started with the giant wall clock behind the Marquis, glimpsed during the hour-long run across Paris that leads up to the final duel in John Wick: Chapter 4, and the question of whether a phone on a desk could feel like that.</p>
 
@@ -245,7 +245,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <p class="links"><a class="secondary" href="https://bitscribbles.com/takepart.html" target="_blank" rel="noopener">Contribute</a></p>
 
 <h3>Credits</h3>
-<p>Open source under the MIT licence. The code is on <a href="https://github.com/Hubert-BitScribbles/Liquid-Clock" target="_blank" rel="noopener">GitHub</a>.</p>
+<p>Open source under the MIT licence. The code is on <a href="https://github.com/bitScribbles/Liquid-Clock" target="_blank" rel="noopener">GitHub</a>.</p>
 <p>Fonts: Space Grotesk, Inter, JetBrains Mono and Caveat, under the SIL Open Font License (<a href="fonts/OFL.txt" target="_blank" rel="noopener">the licence</a>).</p>
 <p>The liquid is domain-warped noise, after <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noopener">Inigo Quilez's article</a> on the technique. There's no other outside code: the rest is written for Liquid Clock.</p>
 <p>© 2026 bitScribbles Studio Ltd.</p>
@@ -390,7 +390,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.11.0';
+const VERSION='1.11.1';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');

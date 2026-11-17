@@ -60,13 +60,18 @@ with sync_playwright() as p:
        .map(e=>{const r=e.getBoundingClientRect();return [e.id||e.textContent.trim().slice(0,20)||e.dataset.k,Math.round(r.width),Math.round(r.height)]})
        .filter(([n,w,h])=>h<44||(w<44&&!/^#/.test(n)))""")
     ok(not small, f'Settings: every control at least 44px to tap {small or ""}')
+    # the selected palette's ring (outline 2px, offset 3px) fits inside the scrolling body, in every column
+    clip = pg.evaluate("""(()=>{const b=document.getElementById('pbody').getBoundingClientRect(),out=[];
+      for(const id of Object.keys(PRESETS)){palId=id;applyPalette();const r=document.querySelector('.pc.on i').getBoundingClientRect();
+        if(r.left-5<b.left-.5||r.right+5>b.right+.5)out.push(id)}palId='marquis';applyPalette();return out})()""")
+    ok(not clip, f'Settings: the selected ring is never clipped {clip or ""}')
     ok(pg.evaluate("[...document.querySelectorAll('#st h3')].map(h=>h.textContent).join()") == 'Clock,Liquid,Moments' and pg.text_content('#tCol') == 'Settings',
        'Settings: grouped as Colours, Clock, Liquid, Moments')
     pg.click('#tAbout'); pg.wait_for_timeout(300); audit(pg, 'About')
     ok('final duel' in pg.inner_text('#vAbout') and 'final act' not in pg.inner_text('#vAbout'), 'About tells the origin right')
     ok(pg.inner_text('#ver') == pg.evaluate("VERSION"), 'About shows the version')
     ok(pg.evaluate("[...document.querySelectorAll('#vAbout a')].some(a=>a.href==='https://bitscribbles.com/takepart.html'&&a.textContent==='Contribute')")
-       and 'coffee' not in pg.inner_text('#vAbout').lower(), 'About links Contribute to Take part, no coffee link')
+       and 'coffee' not in pg.inner_text('#vAbout').lower() and '™' not in pg.inner_text('#vAbout'), 'About links Contribute to Take part, no coffee link')
     pg.keyboard.press('Escape'); pg.wait_for_timeout(500); ok(not open_(), 'Escape closes the panel')
 
     # style choices persist
