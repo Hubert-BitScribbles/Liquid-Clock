@@ -119,27 +119,29 @@ with sync_playwright() as p:
     Hr = "(()=>{const d=new Date();d.setHours(d.getHours()+1,0,0,0);if(d.getHours()===0)d.setHours(1);return d.getTime()})()"
     s = now_at(pg, Hr, 2); ok(len(s['bs']) == 1 and s['bs'][0]['a'] > .9 and s['busy'], 'hours: one burst at the top of the hour, drawn at full speed')
     s = now_at(pg, Hr, 14); ok(len(s['bs']) == 0, 'hours: gone within fourteen seconds')
-    sz = lambda hh: now_at(pg, f"new Date(2026,10,20,{hh},0,0).getTime()", 3)['bs'][0]
-    a1, a23, b23 = sz(1), sz(23), now_at(pg, "new Date(2026,10,21,23,0,0).getTime()", 3)['bs'][0]
+    sz = lambda hh: now_at(pg, f"new Date(2026,10,20,{hh},0,0).getTime()", 7)['bs'][0]
+    a1, a23, b23 = sz(1), sz(23), now_at(pg, "new Date(2026,10,21,23,0,0).getTime()", 7)['bs'][0]
     ok(a1['r'] < .1 and .25 < a23['r'] < .35, 'hours: small at 1 am, growing every hour, but never more than about a third of the screen')
-    s = now_at(pg, Hr, .5); t = now_at(pg, Hr, 3)
+    s = now_at(pg, Hr, 1); t = now_at(pg, Hr, 7)
     ok(len(s['bs']) == 1 and s['bs'][0]['pop'] == 0 and len(t['bs']) == 1 and t['bs'][0]['pop'] == 1 and s['bs'][0]['r'] < t['bs'][0]['r'] / 2,
-       'hours: the drop swells first, then bursts')
+       'hours: the drop swells slowly first (3-5 s), then bursts')
     ok(abs(a23['x'] - b23['x']) + abs(a23['y'] - b23['y']) > .05, 'hours: lands somewhere different from day to day')
     pg.evaluate("STYLE.hours='off'"); s = now_at(pg, Hr, 2); pg.evaluate("STYLE.hours='on'")
     ok(len(s['bs']) == 0, 'hours: Off means no burst')
     s = now_at(pg, M, -20); ok(len(s['bs']) >= 1, 'midnight: ink bursts through the last minute')
-    s = now_at(pg, M, -11.5); v = [b for b in s['bs'] if b['pop'] == 1]
-    ok(len({tuple(b['col']) for b in v}) == 3 and all(((p['x']-q['x'])**2 + (p['y']-q['y'])**2) ** .5 < p['r'] + q['r'] for p in v for q in v),
-       'midnight: ink comes in volleys of three shades that overlap')
+    def groups(base, x0, x1):   # across a stretch of time (one step, in the page): any drop on its own, any two of different shades overlapping
+        return pg.evaluate(f"""([x0,x1])=>{{const B={base};let alone=false,pair=false;
+          for(let x=x0;x<x1;x+=.5){{off=B+x*1000-Date.now();const v=state().bs.filter(b=>b.pop===1&&b.a>.5);
+            for(const p of v){{const o=v.filter(q=>q!==p&&Math.hypot(p.x-q.x,p.y-q.y)<p.r+q.r);
+              alone=alone||!o.length;pair=pair||o.some(q=>q.col.join()!==p.col.join())}}}}return[alone,pair]}}""", [x0, x1])
+    ok(all(groups(M, -59, -1)), 'midnight: ink lands alone or in overlapping shades')
     s = now_at(pg, M, -.5); ok(sum(b['pop'] == 0 for b in s['bs']) >= 4, 'midnight: the great drops swell before 12:00')
     s = now_at(pg, M, 1); ok(len(s['bs']) >= 6 and 0 < s['black'] < 1, 'midnight: the ink floods in as the black arrives')
     s = now_at(pg, D, -298); ok(len(s['bs']) >= 3 and all(b['col'][0] > .9 for b in s['bs']), 'dawn: a volley of light with the first round')
     s = now_at(pg, D, .2); ok(any(b['r'] > 1 for b in s['bs']) and s['white'] == 0, 'dawn: one great burst of light, before the white')
     NY = "new Date(new Date().getFullYear()+1,0,1).getTime()"
     s = now_at(pg, NY, -4); ok(len(s['bs']) >= 3 and s['blk'] == 0, 'New Year: the last seconds count down in ink')
-    s = now_at(pg, NY, 14.5); v = [b for b in s['bs'] if b['pop'] == 1 and b['a'] > .9]
-    ok(len({tuple(round(x, 3) for x in b['col']) for b in v}) >= 3, 'New Year: colour comes in volleys of shades')
+    ok(all(groups(NY, 7, 40)), 'New Year: colour lands alone or in overlapping shades')
     s = now_at(pg, NY, 15); ok(s['blk'] == 1 and s['hide'] == 1 and s['black'] == 0 and len(s['bs']) >= 3, 'New Year: colour breaks through the black')
     s = now_at(pg, NY, 600); ok(len(s['bs']) == 3 and all(b['a'] < .2 for b in s['bs']) and s['blk'] == 0, 'New Year: faint stains linger into the first hour')
     s = now_at(pg, NY, 3700); ok(len(s['bs']) == 0, 'New Year: the stains are gone after an hour')
