@@ -115,8 +115,16 @@ with sync_playwright() as p:
     s = at(pg, D, 20)    # dawn's own churn: in some time zones Paris dawn falls in the run-up to local midnight (11:51 pm in Vancouver in November)
     ok(s['white'] == 0 and s['sun'] > .3 and pg.evaluate("dawnState(dawnNext(Date.now()-60e3)+20e3).ev") < .05, 'dawn: orange light, calm beneath')
     s = at(pg, D, 65); ok(s['sun'] == 0, 'dawn: clock back after a minute')
-    # bursts: one every hour; ink coming faster into midnight and flooding to black; light at dawn; colour at New Year
+    # on the hour, Spin (the default): the liquid turns through the minute before and the minute after each hour, not at midnight
     Hr = "(()=>{const d=new Date();d.setHours(d.getHours()+1,0,0,0);if(d.getHours()===0)d.setHours(1);return d.getTime()})()"
+    ok(pg.evaluate("STYLE.hours") == 'spin', 'on the hour: Spin by default')
+    sp = [now_at(pg, Hr, x) for x in (-70, -30, 30, 70)]
+    ok([round(s['spw']) for s in sp] == [0, 1, 1, 0] and sp[1]['hsp'] == -30 and sp[2]['hsp'] == 30 and not sp[1]['bs'],
+       'on the hour: turns through the minute before and the minute after, with no drop')
+    ok(now_at(pg, Hr, -5)['pu'] < .15, 'on the hour: the minute surge is gentler while it turns')
+    ok(now_at(pg, M, -30)['spw'] == 0 and now_at(pg, M, 30)['spw'] == 0, 'on the hour: not at midnight, which has its own build')
+    # bursts (On the hour: Drop): one every hour; ink coming faster into midnight and flooding to black; light at dawn; colour at New Year
+    pg.evaluate("STYLE.hours='drop'"); ok(now_at(pg, Hr, -30)['spw'] == 0, 'on the hour: Drop means no spin')
     s = now_at(pg, Hr, 2); ok(len(s['bs']) == 1 and s['bs'][0]['a'] > .9 and s['busy'], 'hours: one burst at the top of the hour, drawn at full speed')
     s = now_at(pg, Hr, 14); ok(len(s['bs']) == 0, 'hours: gone within fourteen seconds')
     sz = lambda hh: now_at(pg, f"new Date(2026,10,20,{hh},0,0).getTime()", 7)['bs'][0]
@@ -126,8 +134,8 @@ with sync_playwright() as p:
     ok(len(s['bs']) == 1 and s['bs'][0]['pop'] == 0 and len(t['bs']) == 1 and t['bs'][0]['pop'] == 1 and s['bs'][0]['r'] < t['bs'][0]['r'] / 2,
        'hours: the drop swells slowly first (3-5 s), then bursts')
     ok(abs(a23['x'] - b23['x']) + abs(a23['y'] - b23['y']) > .05, 'hours: lands somewhere different from day to day')
-    pg.evaluate("STYLE.hours='off'"); s = now_at(pg, Hr, 2); pg.evaluate("STYLE.hours='on'")
-    ok(len(s['bs']) == 0, 'hours: Off means no burst')
+    pg.evaluate("STYLE.hours='off'"); s = now_at(pg, Hr, 2); t = now_at(pg, Hr, -30); pg.evaluate("STYLE.hours='spin'")
+    ok(len(s['bs']) == 0 and t['spw'] == 0, 'on the hour: Off means no drop and no spin')
     s = now_at(pg, M, -20); ok(len(s['bs']) >= 1, 'midnight: ink bursts through the last minute')
     def groups(base, x0, x1):   # across a stretch of time (one step, in the page): any drop on its own, any two of different shades overlapping
         return pg.evaluate(f"""([x0,x1])=>{{const B={base};let alone=false,pair=false;

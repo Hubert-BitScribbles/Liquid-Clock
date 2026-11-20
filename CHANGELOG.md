@@ -2,6 +2,11 @@
 
 One entry per version. The version is `VERSION` in `index.html`; it shows in About and in the feedback email's subject.
 
+## 1.13.0 — 19 November 2026
+- **On the hour: Spin** (Hugh's idea, now the default). Through the minute before each hour, the liquid starts turning counterclockwise around the hands: small at the centre at first, then growing out to the minute ring, winding the colours into a spiral. Through the minute after, it unwinds clockwise, from the edge back to the centre, and the clock is calm again by one minute past. Not at midnight, which keeps its own build. The minute surge is gentler while it turns. With reduce motion, it turns half as far.
+- Settings → Moments: **On the hour** is now Spin, Drop (the 1.12 drop) or Off (was Hourly bursts, On or Off). Anyone who had it On gets Spin; Off stays Off.
+- About describes the spin, and the drop as the alternative.
+
 ## 1.12.0 — 17 November 2026
 - **Bursts, reworked** (Hugh: more like a liquid blob or bubble that grows and bursts; smaller; then slower, more viscous, like paint or pudding, with no sharp edges).
   - Each burst now starts as a **drop** that swells slowly in the liquid (3 to 5 seconds for the hourly one), wobbling and glossy, pushing the swirl aside.
