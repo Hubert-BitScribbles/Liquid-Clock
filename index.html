@@ -197,7 +197,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <p id="dnote" class="note"></p>
 </section>
 <section aria-labelledby="hMoments"><h3 id="hMoments">Moments</h3>
-<div class="seg" data-k="hours"><span>Hourly bursts</span><div><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+<div class="seg" data-k="hours"><span>On the hour</span><div><button data-v="spin">Spin</button><button data-v="drop">Drop</button><button data-v="off">Off</button></div></div>
 </section>
 </div></div>
 <div id="vAbout">
@@ -212,7 +212,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <ul>
 <li>The liquid churns hardest around the hands, most of all at their tips.</li>
 <li>In the last ten seconds of every minute it builds, peaks as the minute turns, then settles.</li>
-<li>Every hour, a drop of ink slowly swells in the liquid somewhere new, wobbling like a bubble, then bursts like thick paint, and the swirl slowly takes it back. At 1 am it's small; each hour it grows a little, building towards midnight. Hourly bursts, under Moments in Settings, turns this off.</li>
+<li>Through the minute before each hour, the liquid starts turning counterclockwise around the hands, small at the centre at first, then growing out to the minute ring. Through the minute after, it unwinds clockwise from the edge back to the centre. On the hour, under Moments in Settings, can switch this to Drop: a drop of ink that slowly swells somewhere new, then bursts like thick paint, small at 1 am and growing each hour towards midnight. Or Off.</li>
 <li>Midnight is different. For ten minutes before, the swirl spreads across the whole screen. Through the last minute, volleys of ink in three shades come faster and faster. At 12:00 they flood the screen to black, and the clock slowly finds its way back over the next minute. On New Year's, the last ten seconds count down, and after the black, colour breaks through, each volley in shades of one colour.</li>
 <li>Dawn in Paris is different again, wherever you are. The liquid builds three times, each with a volley of bursts of light, each one cut short. Then one great drop of light swells in the middle and bursts, flooding the screen white as the sun comes up, gives way to a long wash of orange morning light, and the clock slowly finds its way back over the next minute. <span id="dawn"></span></li>
 <li>Second hand, under Clock in Settings, adds a thin second hand in the palette's tips colour. It sweeps smoothly and leaves a faint wake in the liquid.</li>
@@ -259,12 +259,14 @@ const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
 const DERIV=!!gl.getExtension('OES_standard_derivatives');   // for ink outlines; without it the clock stays soft
 const fs=(DERIV?'#extension GL_OES_standard_derivatives : enable\n#define EDGE(x,th) (1.-smoothstep(.6,1.7,abs((x)-(th))/max(fwidth(x),1e-4)))\n':'#define EDGE(x,th) 0.\n')+`precision highp float;uniform vec2 r;uniform float t,ha,ma,sa,sec,P,pu,mid,Q,fl,ink,para,lit,hw,blk;uniform vec2 tl;
 #define NB 8
-uniform vec4 bp[NB],bc[NB];   // bursts: position, radius, strength; colour, seed
+uniform vec4 bp[NB],bc[NB];
+uniform float hsp,spw;          // on the hour: seconds from the hour (-60..60) and how strongly the liquid turns (0 = off)   // bursts: position, radius, strength; colour, seed
 uniform vec3 cBase,cW1,cW2,cAcc,cDeep,cHi,cPlum,cPlumD,cS1,cS2,cS3,cInk;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
  return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
 float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.02+vec2(1.7,9.2);a*=.5;}return v;}
+float ramp(float d){return d<=0.?0.:d<3.?d*d/6.:d-1.5;}   // a soft start
 float smin(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}
 float seg(vec2 p,float a,float len){vec2 d=vec2(sin(a),cos(a));
  float k=clamp(dot(p,d),-.07,len);return length(p-d*k);}
@@ -279,6 +281,11 @@ void main(){vec2 u0=(gl_FragCoord.xy-.5*r)/min(r.x,r.y)*1.6;
  float ds=min(min(seg(so,ha,R*.62)-.008*hw,seg(so,ma,R*.95)),mix(9.,seg(so,sa,R*.98)+.012,sec));
  float shade=para*(1.-smoothstep(.004,.022+.03*hw,ds))*.28;
  uv=u0+tl*.1*para;
+ if(spw>0.){                                            // on the hour: the liquid turns around the hands, counterclockwise as
+  vec2 cn=hp+tl*.1*para,pc=uv-cn;float rr=length(pc)/.7,ar=spw*.135*(1.-.45*min(rr,1.)); // the hour comes (from the centre out to the
+  float th=ar*ramp(60.-60.*rr+min(hsp,0.));                // minute ring), then unwinds clockwise from the edge back in after it
+  if(hsp>0.){float e=clamp((hsp-35.*(1.-rr))/25.,0.,1.);th*=1.-e*e*(3.-2.*e);}  // each ring eases back over 25 s, outer first
+  th*=step(rr,1.);float cs=cos(th),sn=sin(th);uv=cn+mat2(cs,-sn,sn,cs)*pc;}  // sampling turned back by th shows the liquid turned on by th
  for(int i=0;i<NB;i++){vec4 B=bp[i];float bl=1.-floor(bc[i].w)/99.;if(B.w<.002||bl<.01)continue;  // a swelling drop pushes the liquid aside
   vec2 dv=uv-B.xy;float dd=max(length(dv),1e-3),r0=min(B.z,.3);uv-=dv/dd*r0*.4*bl*B.w*exp(-max(dd-B.z,0.)*5./r0);}
  float inf=max(exp(-d*3.2),mid*.9);                     // wide zone around the hands; big events flood the whole screen
@@ -347,7 +354,7 @@ const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attac
 gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
 const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
 const uR=gl.getUniformLocation(pr,'r'),uT=gl.getUniformLocation(pr,'t'),
-      uBp=gl.getUniformLocation(pr,'bp'),uBc=gl.getUniformLocation(pr,'bc'),uBlk=gl.getUniformLocation(pr,'blk');
+      uBp=gl.getUniformLocation(pr,'bp'),uHsp=gl.getUniformLocation(pr,'hsp'),uSpw=gl.getUniformLocation(pr,'spw'),uBc=gl.getUniformLocation(pr,'bc'),uBlk=gl.getUniformLocation(pr,'blk');
 
 // ---- palettes ----
 const PRESETS={
@@ -405,7 +412,7 @@ ps.addEventListener('click',e=>{const b=e.target.closest('.pc');if(!b)return;con
  palId=id;applyPalette();});
 cu.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;custom[k]=e.target.value;palId='custom';applyPalette();});
 
-const VERSION='1.12.0';
+const VERSION='1.13.0';
 document.getElementById('ver').textContent=VERSION;
 document.getElementById('mail').href='mailto:support@bitscribbles.com?subject='+encodeURIComponent('Liquid Clock '+VERSION);
 const hub=document.getElementById('hub'),hint=document.getElementById('hint'),tCol=document.getElementById('tCol'),tAbout=document.getElementById('tAbout');
@@ -424,7 +431,8 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('ob
 try{document.fonts.load('500 20px "Space Grotesk"')}catch(e){}   // the face numerals draw on a canvas, so fetch the font up front
 applyPalette();
 // ---- style: edges, hands, face ----
-let STYLE={ink:'0',hands:'bold',face:'plain',hours:'on',secs:'off',depth:'off'};try{Object.assign(STYLE,JSON.parse(store.get('lc.style')||'{}'))}catch(e){}
+let STYLE={ink:'0',hands:'bold',face:'plain',hours:'spin',secs:'off',depth:'off'};try{Object.assign(STYLE,JSON.parse(store.get('lc.style')||'{}'))}catch(e){}
+if(STYLE.hours==='on')STYLE.hours='spin';   // 1.12 and before: On meant the hourly drop; Spin is the new default
 const uInk=gl.getUniformLocation(pr,'ink'),stEl=document.getElementById('st'),
       uPara=gl.getUniformLocation(pr,'para'),uLit=gl.getUniformLocation(pr,'lit'),uHw=gl.getUniformLocation(pr,'hw'),uSec=gl.getUniformLocation(pr,'sec'),uSa=gl.getUniformLocation(pr,'sa'),uTl=gl.getUniformLocation(pr,'tl');
 function applyStyle(){gl.uniform1f(uInk,STYLE.ink==='1'&&DERIV?1:0);
@@ -627,12 +635,20 @@ function state(){
  const black=x<.5||x>60?0:x<1.6?(x-.5)/1.1:x<5?1:Math.pow(1-(x-5)/55,1.3);   // at 12:00 the ink floods to black, holds ~5 s, returns by +60 s
  const dw=dawnState(d.getTime());
  const k=CALM.matches?.3:1;                                                  // reduce motion: a third of the churn
- const ny=newYear(d,x),bs=bursts(d,x,ny);
- return{ha:h*Math.PI/6,ma:m*Math.PI/30,sa:sec*Math.PI/30,pu:pu*k,mid:Math.max(midn,dw.ev)*k,fl:dw.fl,white:dw.white||0,sun:dw.sun||0,
+ const ny=newYear(d,x),bs=bursts(d,x,ny),sp=spin(d);
+ return{ha:h*Math.PI/6,ma:m*Math.PI/30,sa:sec*Math.PI/30,pu:pu*k*(sp.w?.35:1),hsp:sp.x,spw:sp.w*(CALM.matches?.5:1),mid:Math.max(midn,dw.ev)*k,fl:dw.fl,white:dw.white||0,sun:dw.sun||0,
   black:ny?ny.black:black,blk:ny?ny.blk:0,hide:ny?ny.hide:0,bs,busy:bs.some(b=>b.a>.25)};}
 
+// ---- on the hour (Spin, the default): through the minute before each hour the liquid turns counterclockwise around the
+// hands, starting small at the centre and growing out to the minute ring; through the minute after, it unwinds clockwise
+// from the edge back to the centre, and the clock is calm again. Not at midnight, which has its own build. The minute surge
+// is gentler while it turns, so the spin reads cleanly. The shader does the turning (hsp, spw).
+function spin(d){const s=d.getMinutes()*60+d.getSeconds()+d.getMilliseconds()/1000,x=s<60?s:s>3540?s-3600:null;
+ const hr=x===null?0:x<0?(d.getHours()+1)%24:d.getHours();
+ return x===null||hr===0||!(STYLE.hours==='spin'||STYLE.hours==='on')?{x:0,w:0}:{x,w:1};}
+
 // ---- bursts: anti-fireworks, drops of ink that swell in the liquid and burst ----
-// every hour, one drop somewhere new; midnight, volleys of ink coming faster through the last minute, then a flood to black;
+// every hour (if On the hour is set to Drop), one drop somewhere new; midnight, volleys of ink coming faster through the last minute, then a flood to black;
 // Paris dawn, three volleys of light, then one great drop that bursts into white; New Year, a countdown, the flood, then colour.
 // Volleys overlap in three shades of their colour.
 function rnd(a){a=Math.sin(a*127.1+311.7)*43758.5453;return a-Math.floor(a);}
@@ -657,7 +673,7 @@ function bursts(d,x,ny){
  // every hour (not midnight, which has its own), unless Hours is off: a drop swells from the hour, somewhere different
  // each time, and bursts; small at 1 am and bigger every hour, building towards midnight
  const hs=d.getMinutes()*60+d.getSeconds()+d.getMilliseconds()/1000,hr=d.getHours();
- if(STYLE.hours!=='off'&&hr!==0&&hs<14){const g=(hr-1)/22,sw=3+2*g,seed=hr+d.getDate()*31+d.getMonth()*400,[px,py]=spot(seed,.7);
+ if(STYLE.hours==='drop'&&hr!==0&&hs<14){const g=(hr-1)/22,sw=3+2*g,seed=hr+d.getDate()*31+d.getMonth()*400,[px,py]=spot(seed,.7);
   add(burst(hs-sw,5+3*g,(.06+.22*g)*sz,px,py,ink[0],seed,sw));}
  // midnight: through the last minute, volleys of ink coming faster and faster; at 12:00 eight great drops burst and flood the screen
  if(x>-62&&x<25){const N=calm?5:10,V=calm?2:3;
@@ -749,7 +765,7 @@ function frame(ms){
  gl.uniform1f(uPu,S.pu);gl.uniform1f(uMid,S.mid);gl.uniform1f(uQ,Qa);gl.uniform1f(uFl,S.fl);gl.uniform1f(uHa,S.ha);gl.uniform1f(uMa,S.ma);gl.uniform1f(uSa,S.sa);
  const bpv=new Float32Array(32),bcv=new Float32Array(32);
  S.bs.forEach((b,i)=>{bpv.set([b.x,b.y,b.r,b.a],i*4);bcv.set([b.col[0],b.col[1],b.col[2],Math.round(b.pop*99)+((b.seed*.731%10+10)%10)/10.001],i*4);});
- gl.uniform4fv(uBp,bpv);gl.uniform4fv(uBc,bcv);gl.uniform1f(uBlk,S.blk);ck.style.opacity=(1-S.hide).toFixed(3);
+ gl.uniform1f(uHsp,S.hsp);gl.uniform1f(uSpw,S.spw);gl.uniform4fv(uBp,bpv);gl.uniform4fv(uBc,bcv);gl.uniform1f(uBlk,S.blk);ck.style.opacity=(1-S.hide).toFixed(3);
  tiltStep(dt);gl.uniform2f(uTl,tilt[0],tilt[1]);
  gl.drawArrays(gl.TRIANGLES,0,3);drawClock(S,t);
  flashEl.style.opacity=S.white.toFixed(3);glowEl.style.opacity=S.sun.toFixed(3);voidEl.style.opacity=S.black.toFixed(3);}
